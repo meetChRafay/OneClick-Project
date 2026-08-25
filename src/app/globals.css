@@ -53,6 +53,17 @@
   --chart-4: oklch(0.65 0.2 320);
   --chart-5: oklch(0.58 0.22 27);
 
+  /* Reports charts — same hue family as --chart-*, independently validated
+     against the card surface for CVD separation / contrast (see
+     scripts/validate_palette.js in the dataviz skill). Kept separate from
+     --chart-* so its dark-mode steps (below) don't also change the
+     decorative dots that already use --chart-*. */
+  --dataviz-1: oklch(0.55 0.18 265);
+  --dataviz-2: oklch(0.6 0.15 150);
+  --dataviz-3: oklch(0.72 0.16 75);
+  --dataviz-4: oklch(0.65 0.2 320);
+  --dataviz-5: oklch(0.58 0.22 27);
+
   --sidebar: oklch(0.99 0.002 260);
   --sidebar-foreground: oklch(0.25 0.01 260);
   --sidebar-primary: oklch(0.32 0.14 265);
@@ -109,6 +120,15 @@
   --chart-4: oklch(0.75 0.16 320);
   --chart-5: oklch(0.7 0.19 27);
 
+  /* Re-stepped (not just carried over from --chart-*) to land inside the
+     dark-mode lightness band and clear CVD separation against the dark
+     card surface — validated via the dataviz skill's checker. */
+  --dataviz-1: oklch(0.62 0.15 265);
+  --dataviz-2: oklch(0.64 0.14 155);
+  --dataviz-3: oklch(0.66 0.15 80);
+  --dataviz-4: oklch(0.62 0.17 320);
+  --dataviz-5: oklch(0.6 0.19 25);
+
   --sidebar: oklch(0.15 0.008 260);
   --sidebar-foreground: oklch(0.9 0.003 260);
   --sidebar-primary: oklch(0.72 0.12 265);
@@ -156,6 +176,12 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  --color-dataviz-1: var(--dataviz-1);
+  --color-dataviz-2: var(--dataviz-2);
+  --color-dataviz-3: var(--dataviz-3);
+  --color-dataviz-4: var(--dataviz-4);
+  --color-dataviz-5: var(--dataviz-5);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);

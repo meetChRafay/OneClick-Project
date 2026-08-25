@@ -40,6 +40,7 @@ Every module from the product spec is built and interactive:
 - **Clients** — an admin-only directory with an invitation flow, per-client internal notes (never visible to the client), and a rollup of their projects and health.
 - **Settings** — profile, notification preferences, Google integrations (Drive / Calendar / Gmail, simulated connect flow), organization/team info, and a first-run onboarding checklist.
 - **Activity** — an org-wide chronological audit trail.
+- **Reports** (admin-only) — real charts built on live data: a 6-month invoiced-vs-collected revenue trend, revenue by client, and part-to-whole breakdowns of the task pipeline and project health, alongside a KPI row (collected, outstanding, active projects, task completion rate). The categorical chart colors (`--dataviz-*` tokens in `globals.css`, separate from the decorative `--chart-*` tokens) are validated for colorblind-safe separation and contrast against the card surface in both light and dark mode, not eyeballed.
 - **Global search** (⌘K) across projects, tasks, topics, issues and files.
 
 Every list page applies the same privacy rule via `src/lib/authz.ts`: a client's queries are scoped to their own projects, and internal-only items are filtered out before they ever reach the response.
@@ -103,4 +104,4 @@ npx tsc --noEmit # typecheck
 
 ## Tech stack
 
-Next.js 16 (App Router, Server Actions, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · Radix UI · Supabase (`@supabase/ssr`, `@supabase/supabase-js`) · `next-themes` · `date-fns` · `sonner` · `cmdk` · `pdf-lib` (invoice PDFs).
+Next.js 16 (App Router, Server Actions, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · Radix UI · Supabase (`@supabase/ssr`, `@supabase/supabase-js`) · `next-themes` · `date-fns` · `sonner` · `cmdk` · `pdf-lib` (invoice PDFs) · `recharts` (Reports).
