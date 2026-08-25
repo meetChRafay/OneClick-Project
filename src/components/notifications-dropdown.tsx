@@ -28,6 +28,8 @@ const TYPE_EMOJI: Record<Notification["type"], string> = {
   issue_created: "🐛",
   issue_resolved: "✅",
   project_update: "📊",
+  invoice_sent: "🧾",
+  payment_received: "💰",
 };
 
 export function NotificationsDropdown({

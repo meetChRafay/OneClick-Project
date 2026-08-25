@@ -13,6 +13,7 @@ import {
   History,
   Users,
   Settings,
+  DollarSign,
 } from "lucide-react";
 import type { UserRole } from "@/types/domain";
 
@@ -34,6 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Issues", href: "/issues", icon: AlertTriangle, roles: ["admin", "client"] },
   { label: "Communication", href: "/communication", icon: MessagesSquare, roles: ["admin", "client"] },
   { label: "Approvals", href: "/approvals", icon: ClipboardCheck, roles: ["admin", "client"] },
+  { label: "Payments", href: "/payments", icon: DollarSign, roles: ["admin", "client"] },
   { label: "Activity", href: "/activity", icon: History, roles: ["admin"] },
   { label: "Clients", href: "/clients", icon: Users, roles: ["admin"] },
   { label: "Settings", href: "/settings", icon: Settings, roles: ["admin", "client"] },

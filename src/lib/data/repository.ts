@@ -10,6 +10,8 @@ import type {
   IssueComment,
   Notification,
   Organization,
+  Payment,
+  PaymentStatus,
   Profile,
   Project,
   ProjectFile,
@@ -123,6 +125,12 @@ export interface Repository {
   getApproval(id: string): Promise<Approval | null>;
   createApproval(input: Omit<Approval, "id" | "created_at">): Promise<Approval>;
   decideApproval(id: string, decision: "approved" | "changes_requested", decidedBy: string, feedback?: string): Promise<Approval>;
+
+  // -- Payments
+  listPayments(organizationId: string, opts?: { projectId?: string; clientId?: string; status?: PaymentStatus[] }): Promise<Payment[]>;
+  getPayment(id: string): Promise<Payment | null>;
+  createPayment(input: Omit<Payment, "id" | "created_at">): Promise<Payment>;
+  updatePayment(id: string, patch: Partial<Payment>): Promise<Payment>;
 
   // -- Availability
   getAvailability(profileId: string): Promise<Availability | null>;

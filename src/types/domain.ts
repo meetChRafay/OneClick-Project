@@ -299,6 +299,27 @@ export interface Approval {
   decided_at?: string | null;
 }
 
+export type PaymentStatus = "draft" | "sent" | "paid" | "overdue" | "cancelled";
+
+export interface Payment {
+  id: ID;
+  organization_id: ID;
+  project_id: ID;
+  client_id: ID;
+  invoice_number: string;
+  description: string;
+  amount: number; // major currency unit, e.g. dollars
+  currency: string; // ISO 4217, e.g. "USD"
+  status: PaymentStatus;
+  issued_date: string; // YYYY-MM-DD
+  due_date: string; // YYYY-MM-DD
+  paid_date?: string | null;
+  payment_method?: string | null; // e.g. "Bank transfer", "Card", "PayPal"
+  notes_internal?: string | null; // admin-only, never shown to the client
+  created_by: ID;
+  created_at: string;
+}
+
 export type AvailabilityStatusValue = "available" | "busy" | "away" | "dnd";
 
 export interface DaySchedule {
@@ -384,7 +405,9 @@ export type NotificationType =
   | "availability_request"
   | "issue_created"
   | "issue_resolved"
-  | "project_update";
+  | "project_update"
+  | "invoice_sent"
+  | "payment_received";
 
 export interface Notification {
   id: ID;
@@ -407,7 +430,8 @@ export type ActivityEntityType =
   | "file"
   | "approval"
   | "availability"
-  | "client";
+  | "client"
+  | "payment";
 
 export interface ActivityLog {
   id: ID;

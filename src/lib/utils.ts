@@ -55,6 +55,10 @@ export function relativeTime(date: string | Date) {
   return rtf.format(diffMonth, "month");
 }
 
+export function formatCurrency(amount: number, currency = "USD") {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
+}
+
 export function isOverdue(dueDate: string | null | undefined) {
   if (!dueDate) return false;
   return new Date(dueDate).getTime() < Date.now();

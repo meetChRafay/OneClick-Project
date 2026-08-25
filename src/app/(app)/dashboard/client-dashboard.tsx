@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckSquare, ClipboardCheck, CalendarClock, Clock, TrendingUp } from "lucide-react";
+import { CheckSquare, ClipboardCheck, CalendarClock, Clock, TrendingUp, DollarSign } from "lucide-react";
 import { getRepository } from "@/lib/data";
 import type { CurrentUser } from "@/lib/data/repository";
 import { greeting } from "@/lib/domain-logic";
@@ -13,21 +13,25 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { AvailabilityBadge } from "@/components/availability-badge";
 import { ApprovalStatusBadge } from "@/components/status-badge";
-import { formatDateTime, relativeTime } from "@/lib/utils";
+import { formatCurrency, formatDateTime, relativeTime } from "@/lib/utils";
 import { UserAvatar } from "@/components/user-avatar";
 
 export async function ClientDashboard({ user }: { user: CurrentUser }) {
   const repo = getRepository();
-  const [projects, tasks, approvals, availability, events, profiles] = await Promise.all([
+  const [projects, tasks, approvals, availability, events, profiles, payments] = await Promise.all([
     repo.listProjects(user.organizationId, { profileId: user.id }),
     repo.listTasks(user.organizationId),
     repo.listApprovals(user.organizationId, { status: ["waiting_client"] }),
     repo.getAvailability(user.id),
     repo.listCalendarEvents(user.organizationId, { from: new Date().toISOString() }),
     repo.listProfiles(user.organizationId),
+    repo.listPayments(user.organizationId),
   ]);
 
   const myProjectIds = new Set(projects.map((p) => p.id));
+  const amountDue = payments
+    .filter((p) => myProjectIds.has(p.project_id) && (p.status === "sent" || p.status === "overdue"))
+    .reduce((s, p) => s + p.amount, 0);
 
   // Privacy: only show activity from projects this client is a member of,
   // and never internal-only entries (spec section 41-42).
@@ -57,7 +61,7 @@ export async function ClientDashboard({ user }: { user: CurrentUser }) {
       />
 
       <div className="px-4 lg:px-6 space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           <SummaryCard label="My Tasks" value={myTasks.length} icon={CheckSquare} tone="info" href="/tasks" />
           <SummaryCard
             label="Awaiting My Approval"
@@ -68,6 +72,7 @@ export async function ClientDashboard({ user }: { user: CurrentUser }) {
           />
           <SummaryCard label="Upcoming" value={upcoming.length} icon={CalendarClock} tone="neutral" href="/calendar" />
           <SummaryCard label="Project Progress" value={`${avgProgress}%`} icon={TrendingUp} tone="success" href="/projects" />
+          <SummaryCard label="Amount Due" value={formatCurrency(amountDue)} icon={DollarSign} tone="warning" href="/payments" />
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">

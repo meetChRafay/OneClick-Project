@@ -5,6 +5,7 @@ import type { Repository, CurrentUser } from "@/lib/data/repository";
 import type {
   Approval,
   Issue,
+  Payment,
   Project,
   ProjectHealthResult,
   Task,
@@ -435,6 +436,38 @@ class MockRepository implements Repository {
       }
     }
     return approval;
+  }
+
+  async listPayments(
+    organizationId: string,
+    opts?: { projectId?: string; clientId?: string; status?: Payment["status"][] }
+  ) {
+    const store = ensureSeeded();
+    let payments = store.payments.filter((p) => p.organization_id === organizationId);
+    if (opts?.projectId) payments = payments.filter((p) => p.project_id === opts.projectId);
+    if (opts?.clientId) payments = payments.filter((p) => p.client_id === opts.clientId);
+    if (opts?.status?.length) payments = payments.filter((p) => opts.status!.includes(p.status));
+    return payments.sort((a, b) => b.issued_date.localeCompare(a.issued_date));
+  }
+
+  async getPayment(id: string) {
+    const store = ensureSeeded();
+    return store.payments.find((p) => p.id === id) ?? null;
+  }
+
+  async createPayment(input: Parameters<Repository["createPayment"]>[0]) {
+    const store = ensureSeeded();
+    const payment: Payment = { ...input, id: nextId("pay"), created_at: new Date().toISOString() };
+    store.payments.push(payment);
+    return payment;
+  }
+
+  async updatePayment(id: string, patch: Partial<Payment>) {
+    const store = ensureSeeded();
+    const idx = store.payments.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error("Payment not found");
+    store.payments[idx] = { ...store.payments[idx], ...patch };
+    return store.payments[idx];
   }
 
   async getAvailability(profileId: string) {

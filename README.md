@@ -31,6 +31,7 @@ Every module from the product spec is built and interactive:
 - **Tasks** — the "Waiting For" system (Me / Client / Both / Nobody) that answers "whose court is the ball in" at a glance, full status workflow, filters, and threaded comments with internal/client-visible toggling.
 - **Topics & video workflow** — a 9-stage content pipeline board and a 16-stage detailed production workflow (idea → research → script → voiceover → edit → review → corrections → approval → publish), each topic showing its current stage.
 - **Approvals** — a dedicated request/approve/request-changes flow with the decision cascading back onto the originating task.
+- **Payments** — invoice/billing tracking per project: admins create invoices (amount, due date, description), send them to the client, and mark them paid; clients see their own invoices and status. Summary tiles (total paid, outstanding, overdue) on the Payments page and on both dashboards, plus a per-project Billing tab. This is a billing *tracker*, not a live payment gateway — no card data is collected and no money actually moves; "mark as paid" is a manual admin action standing in for what a Stripe/PayPal webhook would do in production.
 - **Issues** — bug/blocker tracking, separate from tasks, with its own comment threads.
 - **Files** — categorized, versioned, internal/client-visible file records (metadata today; real bytes once Supabase Storage or Google Drive is connected).
 - **Availability** — weekly schedules, one-off exceptions, and a request/respond flow for scheduling calls across time zones.

@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { ApprovalStatus, IssueStatus, ProjectStatus, TaskStatus } from "@/types/domain";
+import type { ApprovalStatus, IssueStatus, PaymentStatus, ProjectStatus, TaskStatus } from "@/types/domain";
 
 const TASK_STATUS_CONFIG: Record<TaskStatus, { label: string; variant: "neutral" | "info" | "warning" | "danger" | "success" }> = {
   not_started: { label: "Not Started", variant: "neutral" },
@@ -67,6 +67,23 @@ const APPROVAL_STATUS_CONFIG: Record<ApprovalStatus, { label: string; variant: "
 
 export function ApprovalStatusBadge({ status, className }: { status: ApprovalStatus; className?: string }) {
   const cfg = APPROVAL_STATUS_CONFIG[status];
+  return (
+    <Badge variant={cfg.variant} className={className}>
+      {cfg.label}
+    </Badge>
+  );
+}
+
+const PAYMENT_STATUS_CONFIG: Record<PaymentStatus, { label: string; variant: "neutral" | "info" | "warning" | "danger" | "success" }> = {
+  draft: { label: "Draft", variant: "neutral" },
+  sent: { label: "Sent", variant: "info" },
+  paid: { label: "Paid", variant: "success" },
+  overdue: { label: "Overdue", variant: "danger" },
+  cancelled: { label: "Cancelled", variant: "neutral" },
+};
+
+export function PaymentStatusBadge({ status, className }: { status: PaymentStatus; className?: string }) {
+  const cfg = PAYMENT_STATUS_CONFIG[status];
   return (
     <Badge variant={cfg.variant} className={className}>
       {cfg.label}

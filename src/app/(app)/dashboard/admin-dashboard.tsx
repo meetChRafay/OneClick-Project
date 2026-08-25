@@ -6,10 +6,12 @@ import {
   UserCheck,
   TrendingUp,
   Clock,
+  DollarSign,
 } from "lucide-react";
 import { getRepository } from "@/lib/data";
 import type { CurrentUser } from "@/lib/data/repository";
 import { computeTaskCounts, greeting, sortByPriorityAndDeadline } from "@/lib/domain-logic";
+import { formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { SummaryCard } from "@/components/summary-card";
 import { TaskCard } from "@/components/task-card";
@@ -25,7 +27,7 @@ import { ProjectStatusBadge } from "@/components/status-badge";
 
 export async function AdminDashboard({ user }: { user: CurrentUser }) {
   const repo = getRepository();
-  const [projects, tasks, profiles, clients, , issues, approvals] = await Promise.all([
+  const [projects, tasks, profiles, clients, , issues, approvals, payments] = await Promise.all([
     repo.listProjects(user.organizationId),
     repo.listTasks(user.organizationId),
     repo.listProfiles(user.organizationId),
@@ -33,7 +35,9 @@ export async function AdminDashboard({ user }: { user: CurrentUser }) {
     repo.listTopics(user.organizationId),
     repo.listIssues(user.organizationId, { status: ["open", "in_progress", "waiting"] }),
     repo.listApprovals(user.organizationId, { status: ["waiting_client"] }),
+    repo.listPayments(user.organizationId),
   ]);
+  const outstanding = payments.filter((p) => p.status === "sent" || p.status === "overdue").reduce((s, p) => s + p.amount, 0);
 
   const activeProjects = projects.filter((p) => p.status === "active" || p.status === "needs_attention");
   const counts = computeTaskCounts(tasks);
@@ -62,7 +66,7 @@ export async function AdminDashboard({ user }: { user: CurrentUser }) {
       />
 
       <div className="px-4 lg:px-6 space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-3">
           <SummaryCard label="Today's Tasks" value={counts.dueToday} icon={ListTodo} tone="info" href="/tasks?due=today" />
           <SummaryCard label="Overdue" value={counts.overdue} icon={AlarmClockOff} tone="danger" href="/tasks?due=overdue" />
           <SummaryCard
@@ -88,6 +92,7 @@ export async function AdminDashboard({ user }: { user: CurrentUser }) {
             href="/availability"
           />
           <SummaryCard label="Avg. Progress" value={`${avgProgress}%`} icon={TrendingUp} tone="neutral" href="/projects" />
+          <SummaryCard label="Outstanding" value={formatCurrency(outstanding)} icon={DollarSign} tone="warning" href="/payments" />
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">

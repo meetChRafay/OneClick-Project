@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CalendarDays, ExternalLink, FolderOpen, Sparkles, AlertTriangle, ClipboardCheck } from "lucide-react";
+import { CalendarDays, ExternalLink, FolderOpen, Sparkles, AlertTriangle, ClipboardCheck, DollarSign } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getRepository } from "@/lib/data";
 import { getAccessibleProjectIds, visibleToRole } from "@/lib/authz";
@@ -18,7 +18,9 @@ import { FileCard } from "@/components/file-card";
 import { ApprovalCard } from "@/components/approval-card";
 import { ActivityTimeline } from "@/components/activity-timeline";
 import { EmptyState } from "@/components/empty-state";
-import { formatDate } from "@/lib/utils";
+import { PaymentTable } from "@/components/payments/payment-table";
+import { NewPaymentDialog } from "@/components/payments/new-payment-dialog";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { sortByPriorityAndDeadline } from "@/lib/domain-logic";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,7 +34,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const project = await repo.getProject(id);
   if (!project || project.organization_id !== user.organizationId) notFound();
 
-  const [client, members, profiles, tasks, topics, issues, files, approvals, activity, health, settings] = await Promise.all([
+  const [client, members, profiles, tasks, topics, issues, files, approvals, activity, health, settings, allPayments] = await Promise.all([
     repo.getClient(project.client_id),
     repo.listProjectMembers(id),
     repo.listProfiles(user.organizationId),
@@ -44,6 +46,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     repo.listActivity(user.organizationId, { projectId: id, limit: 30 }),
     repo.getProjectHealth(id),
     repo.getProjectSettings(id),
+    repo.listPayments(user.organizationId, { projectId: id }),
   ]);
 
   const profileMap = new Map(profiles.map((p) => [p.id, p]));
@@ -51,6 +54,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const visibleFiles = visibleToRole(files, user.role);
   const activeTasks = tasks.filter((t) => t.status !== "completed" && t.status !== "cancelled");
   const openIssues = issues.filter((i) => i.status !== "resolved" && i.status !== "closed");
+  const payments = user.role === "client" ? allPayments.filter((p) => p.status !== "draft") : allPayments;
+  const outstanding = payments.filter((p) => p.status === "sent" || p.status === "overdue").reduce((s, p) => s + p.amount, 0);
 
   return (
     <div>
@@ -104,6 +109,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <TabsTrigger value="communication">Communication</TabsTrigger>
             <TabsTrigger value="issues">Issues ({openIssues.length})</TabsTrigger>
             <TabsTrigger value="approvals">Approvals</TabsTrigger>
+            <TabsTrigger value="billing">Billing{outstanding > 0 ? ` (${formatCurrency(outstanding)} due)` : ""}</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
 
@@ -270,6 +276,19 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   canDecide={user.role === "client" && a.status === "waiting_client"}
                 />
               ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="billing" className="space-y-3">
+            {user.role === "admin" && (
+              <div className="flex justify-end">
+                <NewPaymentDialog projects={[{ id: project.id, name: project.name, clientId: project.client_id }]} />
+              </div>
+            )}
+            {payments.length === 0 ? (
+              <EmptyState icon={DollarSign} title="No invoices yet" description="Create the first invoice for this project." />
+            ) : (
+              <PaymentTable payments={payments} showProject={false} editable={user.role === "admin"} />
             )}
           </TabsContent>
 

@@ -10,6 +10,7 @@ import type {
   IssueComment,
   Notification,
   Organization,
+  Payment,
   Profile,
   Project,
   ProjectFile,
@@ -41,6 +42,7 @@ export interface Store {
   issueComments: IssueComment[];
   files: ProjectFile[];
   approvals: Approval[];
+  payments: Payment[];
   availability: Availability[];
   temporaryAvailability: TemporaryAvailability[];
   availabilityRequests: AvailabilityRequest[];
@@ -70,6 +72,7 @@ function emptyStore(): Store {
     issueComments: [],
     files: [],
     approvals: [],
+    payments: [],
     availability: [],
     temporaryAvailability: [],
     availabilityRequests: [],
