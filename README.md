@@ -1,4 +1,4 @@
-# Project Hub
+# OneClick Project
 
 A premium, full-featured project and client-communication platform for agencies and freelancers — one shared source of truth for projects, tasks, files, approvals, availability and communication with clients, replacing scattered WhatsApp threads, shared drives and email chains.
 

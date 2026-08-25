@@ -1,5 +1,5 @@
 -- ============================================================================
--- Project Hub — row-level security (spec sections 3, 41, 42)
+-- OneClick Project — row-level security (spec sections 3, 41, 42)
 --
 -- Rule of thumb enforced everywhere below: an admin sees everything inside
 -- their own organization; a client sees only their own projects (via

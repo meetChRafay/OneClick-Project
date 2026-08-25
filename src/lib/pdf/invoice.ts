@@ -45,7 +45,7 @@ export async function generateInvoicePdf(input: {
 
   const doc = await PDFDocument.create();
   doc.setTitle(`Invoice ${payment.invoice_number}`);
-  doc.setProducer("Project Hub");
+  doc.setProducer("OneClick Project");
 
   const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   const regular = await doc.embedFont(StandardFonts.Helvetica);
@@ -71,7 +71,7 @@ export async function generateInvoicePdf(input: {
   const rightEdge = PAGE_WIDTH - MARGIN;
 
   // -- Header: org name (left) / "INVOICE" + status pill (right) -----------
-  text(org?.name ?? "Project Hub", MARGIN, y, { size: 18, font: bold });
+  text(org?.name ?? "OneClick Project", MARGIN, y, { size: 18, font: bold });
   text("INVOICE", rightEdge, y, { size: 22, font: bold, align: "right" });
   y -= 22;
 

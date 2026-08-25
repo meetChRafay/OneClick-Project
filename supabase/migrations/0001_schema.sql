@@ -1,5 +1,5 @@
 -- ============================================================================
--- Project Hub — core schema (spec section 40)
+-- OneClick Project — core schema (spec section 40)
 --
 -- Mirrors src/types/domain.ts exactly. Every table here has a corresponding
 -- TypeScript interface — if you change one, change the other. The

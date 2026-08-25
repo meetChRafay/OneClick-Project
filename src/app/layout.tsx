@@ -5,8 +5,8 @@ import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: {
-    default: "Project Hub — Master Project & Client Communication",
-    template: "%s · Project Hub",
+    default: "OneClick Project — Master Project & Client Communication",
+    template: "%s · OneClick Project",
   },
   description:
     "The shared source of truth for projects, tasks, files, availability, approvals and communication between your agency and your clients.",

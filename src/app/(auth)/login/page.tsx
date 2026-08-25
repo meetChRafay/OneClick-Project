@@ -10,7 +10,7 @@ export default function LoginPage() {
     <div className="space-y-8">
       <div className="space-y-1.5">
         <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-        <p className="text-sm text-muted-foreground">Sign in to your Project Hub workspace.</p>
+        <p className="text-sm text-muted-foreground">Sign in to your OneClick Project workspace.</p>
       </div>
 
       <Button variant="outline" className="w-full" type="button" disabled>

@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <BrandWordmark />
         <div className="w-full max-w-sm mx-auto">{children}</div>
         <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Project Hub. All rights reserved.
+          © {new Date().getFullYear()} OneClick Project. All rights reserved.
         </p>
       </div>
       <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-primary/[0.08] via-accent/40 to-background border-l">
