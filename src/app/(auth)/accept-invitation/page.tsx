@@ -15,7 +15,7 @@ export default function AcceptInvitationPage() {
   // In production this reads the invitation token from the URL and looks up
   // the pending invite (client name, project, role) via the Repository.
   const invite = {
-    inviterName: "Abdul Rahman",
+    inviterName: "Abdul Rafay",
     projectName: "Health YouTube Channel",
     email: "you@example.com",
   };

@@ -15,9 +15,9 @@ Open [http://localhost:3000](http://localhost:3000). The login page lists one-cl
 
 | Name | Role | Email | Notes |
 |---|---|---|---|
-| Abdul Rahman | Admin | `abdul@nuxystudio.com` | Founder & Producer at Nuxy Studio (the agency) |
+| Abdul Rafay | Admin | `abdul@nuxystudio.com` | Founder & Producer at Nuxy Studio (the agency) |
 | Sara Malik | Admin | `sara@nuxystudio.com` | Video Editor |
-| Constantin Weber | Client | `constantin@healthveins.tv` | Owns the Health YouTube Channel project |
+| Constantin Mock | Client | `constantin@healthveins.tv` | Owns the Health YouTube Channel project |
 | Elena Rossi | Client | `elena@bellaskincare.com` | Founder of Bella Skincare Co. |
 
 Try both an admin and a client account — the whole app is role-scoped: clients only ever see their own projects, and only the comments/files an admin has marked client-visible.

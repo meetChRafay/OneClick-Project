@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               AR
             </div>
             <div className="text-sm">
-              <div className="font-medium">Abdul Rahman</div>
+              <div className="font-medium">Abdul Rafay</div>
               <div className="text-muted-foreground">Founder, Nuxy Studio</div>
             </div>
           </div>

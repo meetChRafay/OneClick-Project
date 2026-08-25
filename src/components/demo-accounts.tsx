@@ -8,13 +8,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const DEMO_ACCOUNTS = [
   {
     id: "prof_abdul",
-    name: "Abdul Rahman",
+    name: "Abdul Rafay",
     role: "Admin · Founder & Producer",
     icon: ShieldCheck,
   },
   {
     id: "prof_constantin",
-    name: "Constantin Weber",
+    name: "Constantin Mock",
     role: "Client · Health YouTube Channel",
     icon: User,
   },
