@@ -1,4 +1,6 @@
+import { Download } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { PaymentStatusBadge } from "@/components/status-badge";
 import { PaymentStatusSelect } from "@/components/payments/payment-status-select";
 import { formatCurrency, formatDate, isOverdue } from "@/lib/utils";
@@ -26,6 +28,7 @@ export function PaymentTable({
             <TableHead>Amount</TableHead>
             <TableHead>Due</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead className="text-right">PDF</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -56,6 +59,15 @@ export function PaymentTable({
                     <PaymentStatusSelect paymentId={p.id} status={p.status} />
                   ) : (
                     <PaymentStatusBadge status={overdue ? "overdue" : p.status} />
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  {p.status === "draft" && !editable ? null : (
+                    <Button variant="ghost" size="icon-sm" asChild title={`Download ${p.invoice_number}.pdf`}>
+                      <a href={`/api/payments/${p.id}/invoice`} target="_blank" rel="noreferrer">
+                        <Download className="size-3.5" />
+                      </a>
+                    </Button>
                   )}
                 </TableCell>
               </TableRow>
