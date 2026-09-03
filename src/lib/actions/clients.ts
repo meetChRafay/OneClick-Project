@@ -3,13 +3,22 @@
 import { revalidatePath } from "next/cache";
 import { getRepository } from "@/lib/data";
 import { requireAdmin } from "@/lib/auth";
+import { createServiceSupabaseClient } from "@/lib/data/supabase/client";
+import { getSiteUrl } from "@/lib/site-url";
 
 /**
- * Demo-mode invite: creates a Profile with role "client" (onboarding not yet
- * completed — this stands in for "invitation pending") plus the linked
- * Client record (no email is actually sent). The Supabase adapter wires
- * this to supabase.auth.admin.inviteUserByEmail + a DB trigger that creates
- * the matching profiles/clients rows on acceptance.
+ * Invite a client. Supabase backend: sends a real invite email via
+ * supabase.auth.admin.inviteUserByEmail (this needs the service-role key —
+ * an ordinary user can never be allowed to create other Auth users, so this
+ * one call is the one place in the app that uses the privileged client).
+ * The profiles + clients rows get created the instant that auth user exists
+ * by the database trigger in 0004_auth_provisioning.sql, reading the
+ * `data` metadata passed below — nothing else in this action writes those
+ * rows on that backend.
+ *
+ * Mock backend: no real email system, so this creates the Profile/Client
+ * records directly and calls it "invited" (matches every other demo-mode
+ * shortcut in this build).
  */
 export async function inviteClientAction(input: {
   clientName: string;
@@ -19,6 +28,35 @@ export async function inviteClientAction(input: {
 }) {
   const user = await requireAdmin();
   const repo = getRepository();
+
+  if (process.env.DATA_BACKEND === "supabase") {
+    const supabase = createServiceSupabaseClient();
+    const { error } = await supabase.auth.admin.inviteUserByEmail(input.email, {
+      redirectTo: `${getSiteUrl()}/auth/callback?next=/accept-invitation`,
+      data: {
+        signup_type: "client_invite",
+        full_name: input.clientName,
+        organization_id: user.organizationId,
+        company_name: input.companyName ?? input.clientName,
+        ...(input.projectId ? { project_id: input.projectId } : {}),
+      },
+    });
+    if (error) throw new Error(error.message);
+
+    if (input.projectId) {
+      await repo.logActivity({
+        organization_id: user.organizationId,
+        project_id: input.projectId,
+        entity_type: "project",
+        entity_id: input.projectId,
+        actor_id: user.id,
+        action: `invited ${input.clientName} as a client`,
+      });
+    }
+    revalidatePath("/clients");
+    revalidatePath("/projects");
+    return null;
+  }
 
   const profile = await repo.createProfile({
     organization_id: user.organizationId,

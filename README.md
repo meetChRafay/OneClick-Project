@@ -15,9 +15,10 @@ Open [http://localhost:3000](http://localhost:3000). The login page lists one-cl
 
 | Name | Role | Email | Notes |
 |---|---|---|---|
-| Abdul Rafay | Admin |  Founder & Producer at Nuxy Studio (the agency) |
-| Constantin Mock | Client |   Owns the Health YouTube Channel project |
- 
+| Abdul Rafay | Admin | `abdul@nuxystudio.com` | Founder & Producer at Nuxy Studio (the agency) |
+| Sara Malik | Admin | `sara@nuxystudio.com` | Video Editor |
+| Constantin Mock | Client | `constantin@healthveins.tv` | Owns the Health YouTube Channel project |
+| Elena Rossi | Client | `elena@bellaskincare.com` | Founder of Bella Skincare Co. |
 
 Try both an admin and a client account — the whole app is role-scoped: clients only ever see their own projects, and only the comments/files an admin has marked client-visible.
 
@@ -61,10 +62,13 @@ Because every page calls `getRepository()` rather than either implementation dir
 
 ## Connecting a real backend
 
+This is done — `src/lib/data/supabase/adapter.ts` is a full implementation, not a stub, and real Supabase Auth (login, signup, password reset, client invitations) is wired up in `src/lib/actions/auth.ts` / `src/lib/actions/clients.ts` plus `src/proxy.ts` (session refresh) and `src/app/auth/callback/route.ts` (the redirect target every Auth email link uses). To switch this deployment over:
+
 1. Create a Supabase project.
-2. Run the two migrations in `supabase/migrations/` in order (`supabase db push`, or paste each into the SQL editor): `0001_schema.sql` creates every table, enum and index; `0002_rls_policies.sql` enables row-level security matching the client/admin visibility rules described above. These haven't been run against a live database in this environment — review and test them before pointing production traffic at them.
-3. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and set `DATA_BACKEND=supabase`.
-4. Implement `src/lib/data/supabase/adapter.ts` — it currently throws a clear "not yet implemented" error for every method; `src/lib/data/mock/adapter.ts` is the reference implementation to port method-by-method against the schema in step 2.
+2. Run the four migrations in `supabase/migrations/` in order (paste each into the SQL editor and run, one at a time): `0001_schema.sql` (tables/enums/indexes), `0002_rls_policies.sql` (row-level security), `0003_payments.sql` (the Payments/invoicing table — added after 0001/0002 were first written), `0004_auth_provisioning.sql` (the trigger that creates a `profiles` row the instant a Supabase Auth user is created, for both self-serve signup and client invitations). These haven't been run against a live database by anyone other than in this project's own setup — review them yourself before pointing real production traffic at them.
+3. Copy `.env.example` to `.env.local` (or set these in your host's environment variables) and fill in `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and set `DATA_BACKEND=supabase`.
+4. In the Supabase dashboard, under Authentication → URL Configuration, add your deployment's URL (and `http://localhost:3000` for local dev) to the redirect allow-list — Supabase rejects auth redirects to URLs it doesn't recognize.
+5. Supabase's built-in email sending is rate-limited and meant for testing, not real users — for production, connect a real SMTP provider under Authentication → Emails → SMTP Settings before relying on invite/reset/confirmation emails actually landing in inboxes reliably.
 
 ## What's intentionally not wired up
 

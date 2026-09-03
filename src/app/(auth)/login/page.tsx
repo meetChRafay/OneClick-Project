@@ -27,14 +27,16 @@ export default function LoginPage() {
 
       <LoginForm />
 
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="text-xs text-muted-foreground">demo accounts</span>
-          <Separator className="flex-1" />
+      {process.env.DATA_BACKEND !== "supabase" && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <Separator className="flex-1" />
+            <span className="text-xs text-muted-foreground">demo accounts</span>
+            <Separator className="flex-1" />
+          </div>
+          <DemoAccounts />
         </div>
-        <DemoAccounts />
-      </div>
+      )}
 
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
