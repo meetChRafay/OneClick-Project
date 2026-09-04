@@ -34,6 +34,7 @@ import { createIssueAction } from "@/lib/actions/issues";
 import { createAvailabilityRequestAction } from "@/lib/actions/availability";
 import { createCalendarEventAction } from "@/lib/actions/calendar";
 import { inviteClientAction } from "@/lib/actions/clients";
+import type { UserRole } from "@/types/domain";
 
 type QuickAddType = "task" | "project" | "topic" | "issue" | "file" | "availability" | "meeting" | "client";
 
@@ -42,11 +43,22 @@ interface Option {
   name: string;
 }
 
+// "New Project" and "Add Client" are agency/admin actions — the server
+// actions behind them (createProjectAction, inviteClientAction) already
+// call requireAdmin() and refuse a client account, but the client was
+// still being shown these buttons in the first place, which is confusing
+// (looks like it should work, then silently fails). Filtering them out
+// of the list for client accounts fixes the UI to match what the server
+// actually allows.
+const ADMIN_ONLY_TYPES: QuickAddType[] = ["project", "client"];
+
 export function QuickAddModal({
+  role,
   projects,
   members,
   clients,
 }: {
+  role: UserRole;
   projects: Option[];
   members: Option[];
   clients: Option[];
@@ -74,7 +86,7 @@ export function QuickAddModal({
     });
   }
 
-  const TYPES: { type: QuickAddType; label: string; icon: typeof Plus }[] = [
+  const ALL_TYPES: { type: QuickAddType; label: string; icon: typeof Plus }[] = [
     { type: "task", label: "New Task", icon: CheckSquare },
     { type: "project", label: "New Project", icon: FolderKanban },
     { type: "topic", label: "New Topic", icon: Sparkles },
@@ -84,6 +96,7 @@ export function QuickAddModal({
     { type: "meeting", label: "Schedule Meeting", icon: CalendarPlus },
     { type: "client", label: "Add Client", icon: UserPlus },
   ];
+  const TYPES = role === "admin" ? ALL_TYPES : ALL_TYPES.filter((t) => !ADMIN_ONLY_TYPES.includes(t.type));
 
   return (
     <>

@@ -23,6 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Sidebar role={user.role} userName={user.fullName} userEmail={user.email} userId={user.id} />
       <div className="flex-1 flex flex-col min-w-0">
         <TopNav
+          role={user.role}
           projects={projects}
           notifications={notifications}
           profileId={user.id}

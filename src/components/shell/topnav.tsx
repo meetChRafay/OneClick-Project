@@ -3,9 +3,10 @@ import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { QuickAddModal } from "@/components/quick-add/quick-add-modal";
 import { ProjectSwitcher } from "./project-switcher";
 import { ThemeToggle } from "./theme-toggle";
-import type { Notification, Project } from "@/types/domain";
+import type { Notification, Project, UserRole } from "@/types/domain";
 
 export function TopNav({
+  role,
   projects,
   notifications,
   profileId,
@@ -13,6 +14,7 @@ export function TopNav({
   quickAddMembers,
   quickAddClients,
 }: {
+  role: UserRole;
   projects: Project[];
   notifications: Notification[];
   profileId: string;
@@ -26,7 +28,7 @@ export function TopNav({
         <GlobalSearch />
       </div>
       <ProjectSwitcher projects={projects} />
-      <QuickAddModal projects={quickAddProjects} members={quickAddMembers} clients={quickAddClients} />
+      <QuickAddModal role={role} projects={quickAddProjects} members={quickAddMembers} clients={quickAddClients} />
       <ThemeToggle />
       <NotificationsDropdown notifications={notifications} profileId={profileId} />
     </header>

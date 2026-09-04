@@ -50,7 +50,14 @@ import type {
 //    "Step 5: real authentication" work, not this data-layer pass.
 // ============================================================================
 
-function err(action: string, error: { message: string } | null): never {
+function err(
+  action: string,
+  error: { message: string; code?: string; details?: string; hint?: string } | null
+): never {
+  // TEMP DIAGNOSTIC: log the full Postgres error (code/details/hint), not
+  // just the message, so Vercel Runtime Logs show everything Postgres sent
+  // back. Safe to remove once the RLS mystery on "projects" is solved.
+  console.error(`[Supabase ${action}] full error:`, JSON.stringify(error));
   throw new Error(`Supabase ${action} failed: ${error?.message ?? "unknown error"}`);
 }
 
@@ -142,6 +149,20 @@ class SupabaseRepository implements Repository {
     const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase.from("clients").select("*").eq("organization_id", organizationId);
     if (error) err("listClients", error);
+    // TEMP DIAGNOSTIC: RLS silently returns zero rows on a SELECT (no
+    // error thrown) instead of failing loudly, which is exactly what an
+    // empty Client dropdown looks like. Log who Postgres thinks is asking
+    // and how many rows came back, so we can tell "blocked by RLS" apart
+    // from "org genuinely has no clients". Safe to remove once solved.
+    const { data: authCheck } = await supabase.auth.getUser();
+    console.error(
+      "[listClients] auth.uid:",
+      authCheck.user?.id,
+      "| queried organization_id:",
+      organizationId,
+      "| rows returned:",
+      data?.length ?? 0
+    );
     return data ?? [];
   }
 
@@ -203,6 +224,17 @@ class SupabaseRepository implements Repository {
 
   async createProject(input: Omit<Project, "id" | "created_at" | "progress">): Promise<Project> {
     const supabase = await createServerSupabaseClient();
+    // TEMP DIAGNOSTIC: confirm exactly which auth identity Postgres sees
+    // at the moment of this insert, and what we're about to insert, so we
+    // can compare against the manual SQL-editor test. Safe to remove once
+    // the RLS mystery on "projects" is solved.
+    const { data: authCheck } = await supabase.auth.getUser();
+    console.error(
+      "[createProject] auth.uid at insert time:",
+      authCheck.user?.id,
+      "| inserting organization_id:",
+      input.organization_id
+    );
     const { data, error } = await supabase
       .from("projects")
       .insert({ ...input, progress: 0 })
