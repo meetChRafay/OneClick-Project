@@ -1,7 +1,13 @@
-import { createBrowserClient } from "@supabase/ssr";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
+
+// The browser-only client lives in ./browser-client.ts, which has no
+// server-only imports — keep it that way so Client Components can import
+// it without accidentally pulling "next/headers" (used below) into the
+// client bundle. Re-exported here so existing imports of this file still
+// work.
+export { createBrowserSupabaseClient } from "./browser-client";
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -11,14 +17,6 @@ function requireEnv(name: string): string {
     );
   }
   return value;
-}
-
-/** Browser-side Supabase client (client components only). */
-export function createBrowserSupabaseClient(): SupabaseClient {
-  return createBrowserClient(
-    requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
-  );
 }
 
 /** Server-side Supabase client bound to the request's cookies (server components, actions, route handlers). */

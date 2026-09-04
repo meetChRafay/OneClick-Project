@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserSupabaseClient } from "@/lib/data/supabase/client";
+import { createBrowserSupabaseClient } from "@/lib/data/supabase/browser-client";
 
 /**
  * Supabase's admin-issued email links (client invites sent via
