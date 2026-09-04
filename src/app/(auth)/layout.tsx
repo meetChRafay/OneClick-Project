@@ -1,8 +1,10 @@
 import { BrandWordmark } from "@/components/brand-mark";
+import { HashSessionRedirect } from "./hash-session-redirect";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
+      <HashSessionRedirect />
       <div className="flex flex-col justify-between p-8 sm:p-12">
         <BrandWordmark />
         <div className="w-full max-w-sm mx-auto">{children}</div>
