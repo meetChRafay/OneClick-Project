@@ -39,7 +39,7 @@ export function HashSessionRedirect() {
       // blank sign-in form with no idea why.
       const errorCode = params.get("error_code");
       if (errorCode) {
-        window.location.replace(`/login?error=${encodeURIComponent(errorCode)}`);
+        router.replace(`/login?error=${encodeURIComponent(errorCode)}`);
       } else if (params.get("error")) {
         window.history.replaceState(null, "", window.location.pathname + window.location.search);
       }
@@ -52,7 +52,19 @@ export function HashSessionRedirect() {
       if (cancelled) return;
       const destination =
         type === "recovery" ? "/reset-password" : type === "invite" ? "/accept-invitation" : "/dashboard";
-      window.location.replace(error ? "/login?error=session_setup_failed" : destination);
+      // Use Next.js's own client-side router here instead of a hard
+      // window.location.replace(). A full top-level browser navigation
+      // fired immediately after this async setSession() call is what was
+      // producing Chrome's generic "This page couldn't load" interstitial
+      // for some users (confirmed via Vercel logs: the server never once
+      // saw a request for the destination page during those failures — the
+      // browser was aborting its own top-level navigation before it ever
+      // reached us). A client-side transition never triggers that
+      // browser-level page-load path at all, and still picks up the
+      // session cookies setSession() just wrote, since those are already
+      // attached by the time this fires.
+      router.replace(error ? "/login?error=session_setup_failed" : destination);
+      router.refresh();
     });
 
     return () => {
