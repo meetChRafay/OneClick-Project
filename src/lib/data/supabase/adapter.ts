@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { createServerSupabaseClient } from "./client";
 import type { Repository, CurrentUser } from "@/lib/data/repository";
 import type {
@@ -50,14 +51,7 @@ import type {
 //    "Step 5: real authentication" work, not this data-layer pass.
 // ============================================================================
 
-function err(
-  action: string,
-  error: { message: string; code?: string; details?: string; hint?: string } | null
-): never {
-  // TEMP DIAGNOSTIC: log the full Postgres error (code/details/hint), not
-  // just the message, so Vercel Runtime Logs show everything Postgres sent
-  // back. Safe to remove once the RLS mystery on "projects" is solved.
-  console.error(`[Supabase ${action}] full error:`, JSON.stringify(error));
+function err(action: string, error: { message: string } | null): never {
   throw new Error(`Supabase ${action} failed: ${error?.message ?? "unknown error"}`);
 }
 
@@ -131,8 +125,15 @@ class SupabaseRepository implements Repository {
           "Create the auth user first (invite-by-email / sign-up), then call this with that id."
       );
     }
-    const { data, error } = await supabase.from("profiles").insert(withId).select().single();
-    if (error) err("createProfile", error);
+    // NOTE: split into two statements for the same reason as createProject
+    // below — profiles_select calls is_admin(), which queries the
+    // profiles table itself, and that self-check on a row this same
+    // statement just inserted can spuriously fail when combined with
+    // .select() (which turns the insert into INSERT ... RETURNING).
+    const { error: insertErr } = await supabase.from("profiles").insert(withId);
+    if (insertErr) err("createProfile", insertErr);
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", withId.id).single();
+    if (error) err("createProfile (fetch)", error);
     return data;
   }
 
@@ -149,20 +150,6 @@ class SupabaseRepository implements Repository {
     const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase.from("clients").select("*").eq("organization_id", organizationId);
     if (error) err("listClients", error);
-    // TEMP DIAGNOSTIC: RLS silently returns zero rows on a SELECT (no
-    // error thrown) instead of failing loudly, which is exactly what an
-    // empty Client dropdown looks like. Log who Postgres thinks is asking
-    // and how many rows came back, so we can tell "blocked by RLS" apart
-    // from "org genuinely has no clients". Safe to remove once solved.
-    const { data: authCheck } = await supabase.auth.getUser();
-    console.error(
-      "[listClients] auth.uid:",
-      authCheck.user?.id,
-      "| queried organization_id:",
-      organizationId,
-      "| rows returned:",
-      data?.length ?? 0
-    );
     return data ?? [];
   }
 
@@ -224,23 +211,22 @@ class SupabaseRepository implements Repository {
 
   async createProject(input: Omit<Project, "id" | "created_at" | "progress">): Promise<Project> {
     const supabase = await createServerSupabaseClient();
-    // TEMP DIAGNOSTIC: confirm exactly which auth identity Postgres sees
-    // at the moment of this insert, and what we're about to insert, so we
-    // can compare against the manual SQL-editor test. Safe to remove once
-    // the RLS mystery on "projects" is solved.
-    const { data: authCheck } = await supabase.auth.getUser();
-    console.error(
-      "[createProject] auth.uid at insert time:",
-      authCheck.user?.id,
-      "| inserting organization_id:",
-      input.organization_id
-    );
-    const { data, error } = await supabase
-      .from("projects")
-      .insert({ ...input, progress: 0 })
-      .select()
-      .single();
-    if (error) err("createProject", error);
+    // NOTE: this insert is deliberately NOT chained with .select() here.
+    // projects' own RLS SELECT policy (projects_select) calls
+    // can_access_project(id), which runs its own sub-query back against
+    // the projects table. Postgres does not consistently see a row this
+    // same INSERT statement just created when that visibility check is
+    // evaluated as part of an INSERT ... RETURNING (which is what
+    // .insert().select() compiles to) — it intermittently reports "new
+    // row violates row-level security policy for table \"projects\"" even
+    // though the insert itself is perfectly authorized. Generating the id
+    // ourselves and fetching the row back as a separate, second statement
+    // avoids that RETURNING-time check entirely and reliably works.
+    const id = randomUUID();
+    const { error: insertErr } = await supabase.from("projects").insert({ ...input, id, progress: 0 });
+    if (insertErr) err("createProject", insertErr);
+    const { data, error } = await supabase.from("projects").select("*").eq("id", id).single();
+    if (error) err("createProject (fetch)", error);
     const { error: settingsErr } = await supabase.from("project_settings").insert({
       project_id: data.id,
       drive_structure_created: false,
