@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CalendarDays, ExternalLink, FolderOpen, Sparkles, AlertTriangle, ClipboardCheck, DollarSign } from "lucide-react";
+import { CalendarDays, FolderOpen, Sparkles, AlertTriangle, ClipboardCheck, DollarSign } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getRepository } from "@/lib/data";
 import { getAccessibleProjectIds, visibleToRole } from "@/lib/authz";
@@ -21,6 +21,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PaymentTable } from "@/components/payments/payment-table";
 import { NewPaymentDialog } from "@/components/payments/new-payment-dialog";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { DriveLinkEditor } from "@/components/projects/drive-link-editor";
 import { deleteProjectAction } from "@/lib/actions/projects";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { sortByPriorityAndDeadline } from "@/lib/domain-logic";
@@ -216,15 +217,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                       <CardTitle className="text-sm flex items-center gap-1.5"><FolderOpen className="size-3.5 text-primary" />Google Drive</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4 pb-5">
-                      {project.drive_folder_url ? (
-                        <a href={project.drive_folder_url} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1.5">
-                          Open in Google Drive <ExternalLink className="size-3.5" />
-                        </a>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          Not connected yet. {settings?.drive_structure_created ? "" : "Connect Drive in Settings to auto-create this project's folder structure."}
-                        </p>
-                      )}
+                      <DriveLinkEditor projectId={project.id} initialUrl={project.drive_folder_url ?? null} />
                     </CardContent>
                   </Card>
                 )}
