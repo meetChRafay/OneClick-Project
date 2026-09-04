@@ -36,6 +36,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const project = await repo.getProject(id);
   if (!project || project.organization_id !== user.organizationId) notFound();
 
+  const boundDeleteProject = async () => {
+    "use server";
+    await deleteProjectAction(project.id);
+  };
+
   const [client, members, profiles, tasks, topics, issues, files, approvals, activity, health, settings, allPayments] = await Promise.all([
     repo.getClient(project.client_id),
     repo.listProjectMembers(id),
@@ -102,7 +107,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 label="project"
                 itemName={project.name}
                 warning="Its tasks, issues, files, topics, and approvals will be deleted too."
-                action={() => deleteProjectAction(project.id)}
+                action={boundDeleteProject}
                 redirectTo="/projects"
               />
             )}

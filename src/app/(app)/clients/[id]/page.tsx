@@ -31,6 +31,11 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
   const healths = await Promise.all(projects.map((p) => repo.getProjectHealth(p.id)));
 
+  const boundDeleteClient = async () => {
+    "use server";
+    await deleteClientAction(client.id);
+  };
+
   return (
     <div>
       <PageHeader
@@ -45,7 +50,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 ? `This will also permanently delete all ${projects.length} of their project${projects.length > 1 ? "s" : ""} (and everything in them — tasks, files, etc.). Their login is not deleted.`
                 : "Their login is not deleted, only their client record."
             }
-            action={() => deleteClientAction(client.id)}
+            action={boundDeleteClient}
             redirectTo="/clients"
           />
         }

@@ -44,6 +44,11 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     await addTaskCommentAction(id, body, visibility);
   };
 
+  const boundDeleteTask = async () => {
+    "use server";
+    await deleteTaskAction(id);
+  };
+
   return (
     <div className="px-4 lg:px-6 py-6 max-w-6xl">
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
@@ -58,7 +63,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
           <ConfirmDeleteButton
             label="task"
             itemName={task.title}
-            action={() => deleteTaskAction(task.id)}
+            action={boundDeleteTask}
             redirectTo="/tasks"
           />
         )}
