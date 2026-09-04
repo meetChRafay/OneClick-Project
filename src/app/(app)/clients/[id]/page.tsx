@@ -11,6 +11,8 @@ import { ProjectCard } from "@/components/project-card";
 import { ProjectHealthBadge } from "@/components/project-health-badge";
 import { EmptyState } from "@/components/empty-state";
 import { ClientNotesEditor } from "@/components/clients/client-notes-editor";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { deleteClientAction } from "@/lib/actions/clients";
 import { timezoneAbbrev } from "@/lib/timezones";
 import { formatDate } from "@/lib/utils";
 
@@ -34,6 +36,19 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       <PageHeader
         title={profile?.full_name ?? "Pending invite"}
         subtitle={client.company_name ?? undefined}
+        actions={
+          <ConfirmDeleteButton
+            label="client"
+            itemName={profile?.full_name ?? client.company_name ?? "this client"}
+            warning={
+              projects.length > 0
+                ? `This will also permanently delete all ${projects.length} of their project${projects.length > 1 ? "s" : ""} (and everything in them — tasks, files, etc.). Their login is not deleted.`
+                : "Their login is not deleted, only their client record."
+            }
+            action={() => deleteClientAction(client.id)}
+            redirectTo="/clients"
+          />
+        }
       />
       <div className="px-4 lg:px-6 pb-10 space-y-5 max-w-4xl">
         <Card className="p-0">

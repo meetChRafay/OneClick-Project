@@ -181,6 +181,12 @@ class SupabaseRepository implements Repository {
     return data;
   }
 
+  async deleteClient(id: string): Promise<void> {
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase.from("clients").delete().eq("id", id);
+    if (error) err("deleteClient", error);
+  }
+
   // -- Projects --------------------------------------------------------------
 
   async listProjects(organizationId: string, opts?: { clientId?: string; profileId?: string }): Promise<Project[]> {
@@ -243,6 +249,12 @@ class SupabaseRepository implements Repository {
     const { data, error } = await supabase.from("projects").update(patch).eq("id", id).select().single();
     if (error) err("updateProject", error);
     return data;
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase.from("projects").delete().eq("id", id);
+    if (error) err("deleteProject", error);
   }
 
   async listProjectMembers(projectId: string): Promise<ProjectMember[]> {
@@ -490,6 +502,12 @@ class SupabaseRepository implements Repository {
     const { data, error } = await supabase.from("issues").update(patch).eq("id", id).select().single();
     if (error) err("updateIssue", error);
     return data;
+  }
+
+  async deleteIssue(id: string): Promise<void> {
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase.from("issues").delete().eq("id", id);
+    if (error) err("deleteIssue", error);
   }
 
   async listIssueComments(issueId: string): Promise<IssueComment[]> {

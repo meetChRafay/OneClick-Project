@@ -69,12 +69,14 @@ export interface Repository {
   getClientByProfileId(profileId: string): Promise<Client | null>;
   createClient(input: Omit<Client, "id" | "created_at">): Promise<Client>;
   updateClient(id: string, patch: Partial<Client>): Promise<Client>;
+  deleteClient(id: string): Promise<void>;
 
   // -- Projects
   listProjects(organizationId: string, opts?: { clientId?: string; profileId?: string }): Promise<Project[]>;
   getProject(id: string): Promise<Project | null>;
   createProject(input: Omit<Project, "id" | "created_at" | "progress">): Promise<Project>;
   updateProject(id: string, patch: Partial<Project>): Promise<Project>;
+  deleteProject(id: string): Promise<void>;
   listProjectMembers(projectId: string): Promise<ProjectMember[]>;
   addProjectMember(input: Omit<ProjectMember, "id" | "created_at">): Promise<ProjectMember>;
   getProjectSettings(projectId: string): Promise<ProjectSettings | null>;
@@ -112,6 +114,7 @@ export interface Repository {
   getIssue(id: string): Promise<Issue | null>;
   createIssue(input: Omit<Issue, "id" | "created_at">): Promise<Issue>;
   updateIssue(id: string, patch: Partial<Issue>): Promise<Issue>;
+  deleteIssue(id: string): Promise<void>;
   listIssueComments(issueId: string): Promise<IssueComment[]>;
   addIssueComment(input: Omit<IssueComment, "id" | "created_at">): Promise<IssueComment>;
 

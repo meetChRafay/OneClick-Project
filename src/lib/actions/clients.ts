@@ -102,3 +102,18 @@ export async function updateClientNotesAction(clientId: string, notes: string) {
   await repo.updateClient(clientId, { notes_internal: notes || null });
   revalidatePath(`/clients/${clientId}`);
 }
+
+export async function deleteClientAction(clientId: string) {
+  const user = await requireAdmin();
+  const repo = getRepository();
+  const client = await repo.getClient(clientId);
+  if (!client || client.organization_id !== user.organizationId) throw new Error("Client not found");
+  // Removing a client also removes every project that belongs to them
+  // (and everything under those projects) — see 0005_delete_policies.sql.
+  await repo.deleteClient(clientId);
+  revalidatePath("/clients");
+  revalidatePath("/projects");
+  revalidatePath("/tasks");
+  revalidatePath("/issues");
+  revalidatePath("/dashboard");
+}

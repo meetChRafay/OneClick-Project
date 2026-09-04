@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getRepository } from "@/lib/data";
-import { requireUser } from "@/lib/auth";
+import { requireUser, requireAdmin } from "@/lib/auth";
 import { detectMentionedProfileIds } from "@/lib/mentions";
 import type { IssueStatus, Priority } from "@/types/domain";
 
@@ -75,6 +75,18 @@ export async function updateIssueStatusAction(issueId: string, status: IssueStat
   revalidatePath(`/issues/${issueId}`);
   revalidatePath("/dashboard");
   return updated;
+}
+
+export async function deleteIssueAction(issueId: string) {
+  const user = await requireAdmin();
+  const repo = getRepository();
+  const issue = await repo.getIssue(issueId);
+  if (!issue || issue.organization_id !== user.organizationId) throw new Error("Issue not found");
+  await repo.deleteIssue(issueId);
+  revalidatePath("/issues");
+  revalidatePath(`/projects/${issue.project_id}`);
+  revalidatePath("/dashboard");
+  return issue.project_id;
 }
 
 export async function addIssueCommentAction(

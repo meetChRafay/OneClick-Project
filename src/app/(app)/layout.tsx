@@ -16,7 +16,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ]);
 
   const admins = profiles.filter((p) => p.role === "admin");
-  const quickAddClients = clients.map((c) => ({ id: c.id, name: c.company_name ?? c.id }));
+  const profileById = new Map(profiles.map((p) => [p.id, p]));
+  const quickAddClients = clients.map((c) => ({
+    id: c.id,
+    name: c.company_name || profileById.get(c.profile_id)?.full_name || "Unnamed client",
+  }));
 
   return (
     <div className="flex min-h-screen">

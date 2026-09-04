@@ -10,7 +10,8 @@ import { TaskDetailEditor } from "@/components/tasks/task-detail-editor";
 import { CommentThread } from "@/components/comment-thread";
 import { ActivityTimeline } from "@/components/activity-timeline";
 import { FileCard } from "@/components/file-card";
-import { addTaskCommentAction } from "@/lib/actions/tasks";
+import { addTaskCommentAction, deleteTaskAction } from "@/lib/actions/tasks";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { formatDate } from "@/lib/utils";
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -51,7 +52,17 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         <Link href="/tasks" className="hover:underline">Tasks</Link>
       </div>
 
-      <h1 className="text-xl font-semibold tracking-tight mb-1">{task.title}</h1>
+      <div className="flex items-start justify-between gap-3 mb-1">
+        <h1 className="text-xl font-semibold tracking-tight">{task.title}</h1>
+        {user.role === "admin" && (
+          <ConfirmDeleteButton
+            label="task"
+            itemName={task.title}
+            action={() => deleteTaskAction(task.id)}
+            redirectTo="/tasks"
+          />
+        )}
+      </div>
       {topic && (
         <Link href="/topics" className="inline-flex items-center gap-1 text-sm text-primary hover:underline mb-4">
           <Sparkles className="size-3.5" /> {topic.title}

@@ -10,7 +10,8 @@ import { UserAvatar } from "@/components/user-avatar";
 import { DeadlineIndicator } from "@/components/deadline-indicator";
 import { IssueStatusSelect } from "@/components/issues/issue-status-select";
 import { CommentThread } from "@/components/comment-thread";
-import { addIssueCommentAction } from "@/lib/actions/issues";
+import { addIssueCommentAction, deleteIssueAction } from "@/lib/actions/issues";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { formatDate } from "@/lib/utils";
 
 export default async function IssueDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -51,7 +52,17 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{issue.title}</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-xl font-semibold tracking-tight">{issue.title}</h1>
+          {user.role === "admin" && (
+            <ConfirmDeleteButton
+              label="issue"
+              itemName={issue.title}
+              action={() => deleteIssueAction(issue.id)}
+              redirectTo="/issues"
+            />
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-3 mt-2">
           <IssueStatusSelect issueId={issue.id} status={issue.status} editable={user.role === "admin"} />
           <PriorityBadge priority={issue.priority} />

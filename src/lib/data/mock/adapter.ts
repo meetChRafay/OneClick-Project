@@ -20,6 +20,26 @@ function ensureSeeded(): Store {
   return store;
 }
 
+/** Mirrors the "on delete cascade" chains in supabase/migrations/0001_schema.sql for a project. */
+function cascadeDeleteProject(store: Store, projectId: string) {
+  const taskIds = new Set(store.tasks.filter((t) => t.project_id === projectId).map((t) => t.id));
+  const issueIds = new Set(store.issues.filter((i) => i.project_id === projectId).map((i) => i.id));
+
+  store.taskComments = store.taskComments.filter((c) => !taskIds.has(c.task_id));
+  store.taskTags = store.taskTags.filter((t) => !taskIds.has(t.task_id));
+  store.issueComments = store.issueComments.filter((c) => !issueIds.has(c.issue_id));
+  store.tasks = store.tasks.filter((t) => t.project_id !== projectId);
+  store.issues = store.issues.filter((i) => i.project_id !== projectId);
+  store.topics = store.topics.filter((t) => t.project_id !== projectId);
+  store.files = store.files.filter((f) => f.project_id !== projectId);
+  store.approvals = store.approvals.filter((a) => a.project_id !== projectId);
+  store.projectMembers = store.projectMembers.filter((m) => m.project_id !== projectId);
+  store.projectSettings = store.projectSettings.filter((s) => s.project_id !== projectId);
+  store.calendarEvents = store.calendarEvents.filter((e) => e.project_id !== projectId);
+  store.payments = store.payments.filter((p) => p.project_id !== projectId);
+  store.projects = store.projects.filter((p) => p.id !== projectId);
+}
+
 function computeProjectHealth(store: Store, projectId: string): ProjectHealthResult {
   const now = Date.now();
   const tasks = store.tasks.filter((t) => t.project_id === projectId);
@@ -146,6 +166,19 @@ class MockRepository implements Repository {
     return store.clients[idx];
   }
 
+  async deleteClient(id: string) {
+    const store = ensureSeeded();
+    // Mirrors clients_id -> projects.client_id "on delete cascade": every
+    // project belonging to this client goes too (and everything cascaded
+    // from those projects). The client's login/profile is left alone —
+    // only the profiles -> clients direction cascades, not this one.
+    for (const project of store.projects.filter((p) => p.client_id === id)) {
+      cascadeDeleteProject(store, project.id);
+    }
+    store.payments = store.payments.filter((p) => p.client_id !== id);
+    store.clients = store.clients.filter((c) => c.id !== id);
+  }
+
   async listProjects(organizationId: string, opts?: { clientId?: string; profileId?: string }) {
     const store = ensureSeeded();
     let projects = store.projects.filter((p) => p.organization_id === organizationId);
@@ -189,6 +222,11 @@ class MockRepository implements Repository {
     if (idx === -1) throw new Error("Project not found");
     store.projects[idx] = { ...store.projects[idx], ...patch };
     return store.projects[idx];
+  }
+
+  async deleteProject(id: string) {
+    const store = ensureSeeded();
+    cascadeDeleteProject(store, id);
   }
 
   async listProjectMembers(projectId: string) {
@@ -343,6 +381,12 @@ class MockRepository implements Repository {
     if (idx === -1) throw new Error("Issue not found");
     store.issues[idx] = { ...store.issues[idx], ...patch };
     return store.issues[idx];
+  }
+
+  async deleteIssue(id: string) {
+    const store = ensureSeeded();
+    store.issueComments = store.issueComments.filter((c) => c.issue_id !== id);
+    store.issues = store.issues.filter((i) => i.id !== id);
   }
 
   async listIssueComments(issueId: string) {

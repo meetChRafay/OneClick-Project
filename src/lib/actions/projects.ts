@@ -47,6 +47,20 @@ export async function createProjectAction(input: {
   return project;
 }
 
+export async function deleteProjectAction(id: string) {
+  const user = await requireAdmin();
+  const repo = getRepository();
+  const project = await repo.getProject(id);
+  if (!project || project.organization_id !== user.organizationId) throw new Error("Project not found");
+  await repo.deleteProject(id);
+  revalidatePath("/projects");
+  revalidatePath("/tasks");
+  revalidatePath("/issues");
+  revalidatePath("/files");
+  revalidatePath("/approvals");
+  revalidatePath("/dashboard");
+}
+
 export async function updateProjectAction(id: string, patch: Partial<Project>) {
   const user = await requireAdmin();
   const repo = getRepository();

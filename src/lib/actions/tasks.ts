@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getRepository } from "@/lib/data";
-import { requireUser } from "@/lib/auth";
+import { requireUser, requireAdmin } from "@/lib/auth";
 import { detectMentionedProfileIds } from "@/lib/mentions";
 import type { Priority, Task, TaskStatus, WaitingFor } from "@/types/domain";
 
@@ -88,6 +88,18 @@ export async function updateTaskAction(taskId: string, patch: Partial<Task>) {
   revalidatePath(`/projects/${task.project_id}`);
   revalidatePath("/dashboard");
   return updated;
+}
+
+export async function deleteTaskAction(taskId: string) {
+  const user = await requireAdmin();
+  const repo = getRepository();
+  const task = await repo.getTask(taskId);
+  if (!task || task.organization_id !== user.organizationId) throw new Error("Task not found");
+  await repo.deleteTask(taskId);
+  revalidatePath("/tasks");
+  revalidatePath(`/projects/${task.project_id}`);
+  revalidatePath("/dashboard");
+  return task.project_id;
 }
 
 export async function addTaskCommentAction(

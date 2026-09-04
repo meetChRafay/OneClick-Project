@@ -20,6 +20,8 @@ import { ActivityTimeline } from "@/components/activity-timeline";
 import { EmptyState } from "@/components/empty-state";
 import { PaymentTable } from "@/components/payments/payment-table";
 import { NewPaymentDialog } from "@/components/payments/new-payment-dialog";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { deleteProjectAction } from "@/lib/actions/projects";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { sortByPriorityAndDeadline } from "@/lib/domain-logic";
 
@@ -95,6 +97,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               </div>
               <Progress value={project.progress} className="h-1.5" />
             </div>
+            {user.role === "admin" && (
+              <ConfirmDeleteButton
+                label="project"
+                itemName={project.name}
+                warning="Its tasks, issues, files, topics, and approvals will be deleted too."
+                action={() => deleteProjectAction(project.id)}
+                redirectTo="/projects"
+              />
+            )}
           </div>
         </div>
       </div>
