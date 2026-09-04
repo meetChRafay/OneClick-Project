@@ -115,6 +115,7 @@ export interface Task {
   topic_id?: ID | null;
   title: string;
   description?: string | null;
+  drive_url?: string | null; // e.g. the Drive link for the specific video this task is about
   assignee_id?: ID | null;
   creator_id: ID;
   status: TaskStatus;

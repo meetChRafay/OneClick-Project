@@ -126,6 +126,25 @@ export function TaskDetailEditor({
           }}
         />
       </div>
+
+      <div className="space-y-1.5 col-span-2">
+        <Label className="text-xs text-muted-foreground">Video / file link (Google Drive)</Label>
+        <Input
+          type="url"
+          placeholder="Paste this task's Google Drive link here…"
+          disabled={!editable || pending}
+          defaultValue={task.drive_url ?? ""}
+          onBlur={(e) => {
+            const value = e.target.value.trim() || null;
+            if (value !== (task.drive_url ?? null)) update({ drive_url: value }, "Link saved");
+          }}
+        />
+        {task.drive_url && (
+          <a href={task.drive_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline inline-block mt-0.5">
+            Open link ↗
+          </a>
+        )}
+      </div>
     </div>
   );
 }
