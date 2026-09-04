@@ -32,9 +32,15 @@ export function HashSessionRedirect() {
     const type = params.get("type");
 
     if (!accessToken || !refreshToken) {
-      // Nothing usable in the hash (e.g. an #error=... from an expired
-      // link) — just strip it so it doesn't linger in the address bar.
-      if (params.get("error")) {
+      // Nothing usable in the hash — most commonly an #error=... from a
+      // link that was already used once or has expired (Supabase invite
+      // and recovery links are one-time-use). Surface it on /login instead
+      // of silently stripping it, so the person isn't left staring at a
+      // blank sign-in form with no idea why.
+      const errorCode = params.get("error_code");
+      if (errorCode) {
+        window.location.replace(`/login?error=${encodeURIComponent(errorCode)}`);
+      } else if (params.get("error")) {
         window.history.replaceState(null, "", window.location.pathname + window.location.search);
       }
       return;

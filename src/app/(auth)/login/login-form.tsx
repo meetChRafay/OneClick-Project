@@ -10,14 +10,14 @@ import { Label } from "@/components/ui/label";
 
 const initialState: ActionResult = { ok: true };
 
-export function LoginForm() {
+export function LoginForm({ banner }: { banner?: string }) {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
     <form action={formAction} className="space-y-4">
-      {state?.error && (
+      {(state?.error || banner) && (
         <div className="rounded-lg border border-status-danger/30 bg-status-danger-bg px-3 py-2 text-sm text-status-danger">
-          {state.error}
+          {state?.error ?? banner}
         </div>
       )}
       <div className="space-y-1.5">
