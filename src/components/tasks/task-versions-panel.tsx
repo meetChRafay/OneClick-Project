@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { ExternalLink, GitCommitVertical, ImagePlus, Loader2, Plus, Send } from "lucide-react";
+import { CheckCircle2, ExternalLink, GitCommitVertical, ImagePlus, Loader2, Plus, RotateCcw, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { UserAvatar } from "@/components/user-avatar";
 import { normalizeExternalUrl, relativeTime, formatDate } from "@/lib/utils";
-import { addTaskVersionAction, updateTaskVersionAction, deleteTaskVersionAction } from "@/lib/actions/task-versions";
+import {
+  addTaskVersionAction,
+  updateTaskVersionAction,
+  deleteTaskVersionAction,
+  setVersionStatusAsClientAction,
+} from "@/lib/actions/task-versions";
 import { addVersionCommentAction } from "@/lib/actions/task-version-comments";
 import type {
   Priority,
@@ -158,6 +163,8 @@ function VersionCard({
         )}
       </div>
 
+      {!canManage && <ClientVersionActions taskId={taskId} version={version} />}
+
       <div className="grid grid-cols-3 gap-2.5 text-xs">
         <div className="space-y-1">
           <div className="text-muted-foreground">Priority</div>
@@ -249,6 +256,45 @@ function VersionCard({
       </div>
 
       <VersionCommentThread taskId={taskId} versionId={version.id} comments={comments} authorNames={authorNames} />
+    </div>
+  );
+}
+
+/** The client's own status buttons — a real action, not just a comment. */
+function ClientVersionActions({ taskId, version }: { taskId: string; version: TaskVersion }) {
+  const [pending, startTransition] = useTransition();
+
+  function act(status: "revision_requested" | "approved_final", message: string) {
+    startTransition(async () => {
+      try {
+        await setVersionStatusAsClientAction(taskId, version.id, status);
+        toast.success(message);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Couldn't save that");
+      }
+    });
+  }
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <Button
+        size="sm"
+        variant={version.status === "approved_final" ? "default" : "outline"}
+        disabled={pending}
+        onClick={() => act("approved_final", "Marked as approved")}
+      >
+        {pending ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
+        Approve this version
+      </Button>
+      <Button
+        size="sm"
+        variant={version.status === "revision_requested" ? "default" : "outline"}
+        disabled={pending}
+        onClick={() => act("revision_requested", "Revision requested")}
+      >
+        {pending ? <Loader2 className="size-3.5 animate-spin" /> : <RotateCcw className="size-3.5" />}
+        Request a revision
+      </Button>
     </div>
   );
 }

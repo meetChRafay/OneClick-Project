@@ -47,7 +47,10 @@ insert into storage.buckets (id, name, public)
 values ('version-images', 'version-images', true)
 on conflict (id) do nothing;
 
-alter table storage.objects enable row level security;
+-- storage.objects already has row-level security enabled by Supabase itself
+-- (and only Supabase's own internal role owns that table, so we can't run
+-- "alter table ... enable row level security" on it ourselves) — we only
+-- need to add our own policies on top of it, which is allowed.
 
 create policy version_images_read on storage.objects
   for select using (bucket_id = 'version-images');

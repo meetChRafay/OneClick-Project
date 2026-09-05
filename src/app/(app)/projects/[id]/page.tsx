@@ -57,6 +57,19 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     repo.listPayments(user.organizationId, { projectId: id }),
   ]);
 
+  // Self-heals stale/legacy progress numbers: recompute from this project's
+  // tasks and persist it if it's out of date (progress is also kept current
+  // going forward whenever a task is created, its status changes, or it's
+  // deleted — see recalculateProjectProgress()).
+  const countedTasks = tasks.filter((t) => t.status !== "cancelled");
+  const computedProgress = countedTasks.length
+    ? Math.round((countedTasks.filter((t) => t.status === "completed").length / countedTasks.length) * 100)
+    : project.progress;
+  if (computedProgress !== project.progress) {
+    project.progress = computedProgress;
+    await repo.updateProject(id, { progress: computedProgress });
+  }
+
   const profileMap = new Map(profiles.map((p) => [p.id, p]));
   const clientProfile = client ? profileMap.get(client.profile_id) : null;
   const visibleFiles = visibleToRole(files, user.role);

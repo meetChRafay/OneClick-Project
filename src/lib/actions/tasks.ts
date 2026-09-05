@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getRepository } from "@/lib/data";
 import { requireUser, requireAdmin } from "@/lib/auth";
 import { detectMentionedProfileIds } from "@/lib/mentions";
+import { recalculateProjectProgress } from "@/lib/project-progress";
 import type { Priority, Task, TaskStatus, WaitingFor } from "@/types/domain";
 
 export async function createTaskAction(input: {
@@ -44,6 +45,7 @@ export async function createTaskAction(input: {
     actor_id: user.id,
     action: `created task "${task.title}"`,
   });
+  await recalculateProjectProgress(repo, input.projectId);
   revalidatePath("/tasks");
   revalidatePath(`/projects/${input.projectId}`);
   revalidatePath("/dashboard");
@@ -70,6 +72,7 @@ export async function updateTaskStatusAction(taskId: string, status: TaskStatus)
     actor_id: user.id,
     action: `changed status to "${status.replace(/_/g, " ")}"`,
   });
+  await recalculateProjectProgress(repo, task.project_id);
   revalidatePath("/tasks");
   revalidatePath(`/tasks/${taskId}`);
   revalidatePath(`/projects/${task.project_id}`);
@@ -96,6 +99,7 @@ export async function deleteTaskAction(taskId: string) {
   const task = await repo.getTask(taskId);
   if (!task || task.organization_id !== user.organizationId) throw new Error("Task not found");
   await repo.deleteTask(taskId);
+  await recalculateProjectProgress(repo, task.project_id);
   revalidatePath("/tasks");
   revalidatePath(`/projects/${task.project_id}`);
   revalidatePath("/dashboard");
