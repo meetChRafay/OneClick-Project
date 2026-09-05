@@ -449,6 +449,20 @@ class SupabaseRepository implements Repository {
     if (error) err("deleteTaskVersion", error);
   }
 
+  async listVersionsAwaitingReview(organizationId: string): Promise<TaskVersion[]> {
+    const supabase = await createServerSupabaseClient();
+    // RLS (task_versions_select) already limits this to versions on projects
+    // the current user can access, so a client only ever sees their own.
+    const { data, error } = await supabase
+      .from("task_versions")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("status", "sent_for_review")
+      .order("created_at", { ascending: false });
+    if (error) err("listVersionsAwaitingReview", error);
+    return data ?? [];
+  }
+
   async listVersionComments(versionId: string): Promise<TaskVersionComment[]> {
     const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase

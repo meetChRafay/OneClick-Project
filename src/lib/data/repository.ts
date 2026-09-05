@@ -110,6 +110,8 @@ export interface Repository {
     patch: Partial<Omit<TaskVersion, "id" | "task_id" | "organization_id" | "version_number" | "created_by" | "created_at">>
   ): Promise<TaskVersion>;
   deleteTaskVersion(id: string): Promise<void>;
+  /** Versions sitting in "Sent for Client Review" org-wide — powers the "Awaiting My Approval" dashboard widget. */
+  listVersionsAwaitingReview(organizationId: string): Promise<TaskVersion[]>;
   listVersionComments(versionId: string): Promise<TaskVersionComment[]>;
   addVersionComment(input: Omit<TaskVersionComment, "id" | "created_at">): Promise<TaskVersionComment>;
   /** Uploads a binary file (e.g. an image attached to version feedback) and returns a public URL. */

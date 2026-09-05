@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckSquare, ClipboardCheck, CalendarClock, Clock, TrendingUp, DollarSign } from "lucide-react";
+import { CheckSquare, ClipboardCheck, CalendarClock, Clock, TrendingUp, DollarSign, GitCommitVertical } from "lucide-react";
 import { getRepository } from "@/lib/data";
 import type { CurrentUser } from "@/lib/data/repository";
 import { greeting } from "@/lib/domain-logic";
@@ -18,10 +18,11 @@ import { UserAvatar } from "@/components/user-avatar";
 
 export async function ClientDashboard({ user }: { user: CurrentUser }) {
   const repo = getRepository();
-  const [projects, tasks, approvals, availability, events, profiles, payments] = await Promise.all([
+  const [projects, tasks, approvals, versionsAwaitingReviewRaw, availability, events, profiles, payments] = await Promise.all([
     repo.listProjects(user.organizationId, { profileId: user.id }),
     repo.listTasks(user.organizationId),
     repo.listApprovals(user.organizationId, { status: ["waiting_client"] }),
+    repo.listVersionsAwaitingReview(user.organizationId),
     repo.getAvailability(user.id),
     repo.listCalendarEvents(user.organizationId, { from: new Date().toISOString() }),
     repo.listProfiles(user.organizationId),
@@ -46,6 +47,15 @@ export async function ClientDashboard({ user }: { user: CurrentUser }) {
     (t) => myProjectIds.has(t.project_id) && (t.waiting_for === "client" || t.waiting_for === "both") && t.status !== "completed"
   );
   const myApprovals = approvals.filter((a) => myProjectIds.has(a.project_id));
+  const taskMap = new Map(tasks.map((t) => [t.id, t]));
+  // Versions your editor has sent for your review — folded into "Awaiting
+  // My Approval" alongside the older Approvals feature, so this counter
+  // actually reflects everything waiting on you, not just half of it.
+  const versionsAwaitingReview = versionsAwaitingReviewRaw.filter((v) => {
+    const task = taskMap.get(v.task_id);
+    return task && myProjectIds.has(task.project_id);
+  });
+  const awaitingCount = myApprovals.length + versionsAwaitingReview.length;
   const upcoming = events.filter((e) => myProjectIds.has(e.project_id ?? "")).slice(0, 4);
   const projectMap = new Map(projects.map((p) => [p.id, p]));
   const profileMap = new Map(profiles.map((p) => [p.id, p]));
@@ -65,7 +75,7 @@ export async function ClientDashboard({ user }: { user: CurrentUser }) {
           <SummaryCard label="My Tasks" value={myTasks.length} icon={CheckSquare} tone="info" href="/tasks" />
           <SummaryCard
             label="Awaiting My Approval"
-            value={myApprovals.length}
+            value={awaitingCount}
             icon={ClipboardCheck}
             tone="warning"
             href="/approvals"
@@ -84,7 +94,7 @@ export async function ClientDashboard({ user }: { user: CurrentUser }) {
                   View all
                 </Link>
               </div>
-              {myApprovals.length === 0 ? (
+              {awaitingCount === 0 ? (
                 <EmptyState icon={ClipboardCheck} title="Nothing to review" description="You're all caught up." />
               ) : (
                 <div className="space-y-2.5">
@@ -101,6 +111,24 @@ export async function ClientDashboard({ user }: { user: CurrentUser }) {
                       </Link>
                     </Card>
                   ))}
+                  {versionsAwaitingReview.map((v) => {
+                    const task = taskMap.get(v.task_id);
+                    return (
+                      <Card key={v.id} className="p-0">
+                        <Link href={`/tasks/${v.task_id}`} className="flex items-center justify-between gap-3 p-4">
+                          <div className="min-w-0">
+                            <div className="font-medium text-sm truncate">{task?.title ?? "Untitled task"}</div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {task ? projectMap.get(task.project_id)?.name : ""} · V{v.version_number} sent {relativeTime(v.created_at)}
+                            </div>
+                          </div>
+                          <Badge variant="info" className="shrink-0 gap-1">
+                            <GitCommitVertical className="size-3" /> Review this cut
+                          </Badge>
+                        </Link>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </div>

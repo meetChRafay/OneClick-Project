@@ -339,6 +339,13 @@ class MockRepository implements Repository {
     store.taskVersionComments = store.taskVersionComments.filter((c) => c.version_id !== id);
   }
 
+  async listVersionsAwaitingReview(organizationId: string) {
+    const store = ensureSeeded();
+    return store.taskVersions.filter(
+      (v) => v.organization_id === organizationId && v.status === "sent_for_review"
+    );
+  }
+
   async listVersionComments(versionId: string) {
     const store = ensureSeeded();
     return store.taskVersionComments
