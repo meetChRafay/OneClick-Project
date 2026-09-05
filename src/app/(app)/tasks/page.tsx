@@ -13,6 +13,8 @@ import { NewTaskDialog } from "@/components/tasks/new-task-dialog";
 import type { Task, TaskStatus, WaitingFor } from "@/types/domain";
 
 export const metadata: Metadata = { title: "Tasks" };
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function TasksPage({
   searchParams,

@@ -15,6 +15,12 @@ import { addTaskCommentAction, deleteTaskAction } from "@/lib/actions/tasks";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { formatDate } from "@/lib/utils";
 
+// Force a fresh Postgres read on every visit — belt-and-suspenders against
+// any edge/CDN caching ever serving a stale task page (e.g. a client
+// looking at a page that was loaded just before a new version was added).
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await requireUser();
