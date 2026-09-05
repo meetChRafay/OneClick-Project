@@ -6,6 +6,7 @@ import { ExternalLink, Loader2, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { updateProjectAction } from "@/lib/actions/projects";
+import { normalizeExternalUrl } from "@/lib/utils";
 
 export function DriveLinkEditor({ projectId, initialUrl }: { projectId: string; initialUrl: string | null }) {
   const [url, setUrl] = useState(initialUrl ?? "");
@@ -13,9 +14,11 @@ export function DriveLinkEditor({ projectId, initialUrl }: { projectId: string; 
   const [pending, startTransition] = useTransition();
 
   function save() {
+    const normalized = normalizeExternalUrl(url);
     startTransition(async () => {
       try {
-        await updateProjectAction(projectId, { drive_folder_url: url.trim() || null });
+        await updateProjectAction(projectId, { drive_folder_url: normalized });
+        setUrl(normalized ?? "");
         setDirty(false);
         toast.success("Drive link saved");
       } catch {
@@ -44,7 +47,12 @@ export function DriveLinkEditor({ projectId, initialUrl }: { projectId: string; 
         )}
       </div>
       {!dirty && url && (
-        <a href={url} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1.5">
+        <a
+          href={normalizeExternalUrl(url) ?? "#"}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm text-primary hover:underline flex items-center gap-1.5"
+        >
           Open in Google Drive <ExternalLink className="size-3.5" />
         </a>
       )}

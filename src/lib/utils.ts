@@ -5,6 +5,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Normalizes a pasted link (e.g. a Google Drive URL) so an <a href> actually
+ * leaves the site. Without this, something typed as "gooo.com" (no scheme)
+ * is treated by the browser as a path relative to the current page —
+ * e.g. it opens "yourapp.com/tasks/gooo.com" instead of leaving the app.
+ * Returns null for an empty value.
+ */
+export function normalizeExternalUrl(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
 export function initials(name: string) {
   return name
     .split(" ")

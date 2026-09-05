@@ -164,6 +164,28 @@ export interface TaskAttachment {
   created_at: string;
 }
 
+// A dated history of every video/document cut for a task — e.g. "V1 draft",
+// "V2 with client's requested changes", "V3 final approved" — each with its
+// own Drive link, so you can always see the current version and everything
+// that came before it.
+export type TaskVersionStatus =
+  | "draft"
+  | "sent_for_review"
+  | "revision_requested"
+  | "approved_final";
+
+export interface TaskVersion {
+  id: ID;
+  organization_id: ID;
+  task_id: ID;
+  version_number: number; // 1, 2, 3… auto-incremented per task
+  status: TaskVersionStatus;
+  drive_url?: string | null;
+  notes?: string | null; // e.g. "shortened intro, removed background music"
+  created_by: ID;
+  created_at: string;
+}
+
 export type ContentPipelineStage =
   | "ideas"
   | "research"

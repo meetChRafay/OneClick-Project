@@ -1308,6 +1308,7 @@ export function buildSeed(): Store {
     projectSettings,
     tasks,
     taskComments,
+    taskVersions: [],
     tags,
     taskTags,
     topics,

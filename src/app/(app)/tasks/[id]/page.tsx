@@ -7,6 +7,7 @@ import { getAccessibleProjectIds, visibleToRole } from "@/lib/authz";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TaskDetailEditor } from "@/components/tasks/task-detail-editor";
+import { TaskVersionsPanel } from "@/components/tasks/task-versions-panel";
 import { CommentThread } from "@/components/comment-thread";
 import { ActivityTimeline } from "@/components/activity-timeline";
 import { FileCard } from "@/components/file-card";
@@ -25,10 +26,11 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   const scope = await getAccessibleProjectIds(repo, user);
   if (scope && !scope.has(task.project_id)) notFound();
 
-  const [project, profiles, comments, activity, topic, allFiles] = await Promise.all([
+  const [project, profiles, comments, versions, activity, topic, allFiles] = await Promise.all([
     repo.getProject(task.project_id),
     repo.listProfiles(user.organizationId),
     repo.listTaskComments(id),
+    repo.listTaskVersions(id),
     repo.listActivity(user.organizationId, { entityId: id }),
     task.topic_id ? repo.getTopic(task.topic_id) : Promise.resolve(null),
     repo.listFiles(user.organizationId, { projectId: task.project_id }),
@@ -124,11 +126,24 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="comments">
+          <Tabs defaultValue="versions">
             <TabsList>
+              <TabsTrigger value="versions">Versions</TabsTrigger>
               <TabsTrigger value="comments">Comments</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
+            <TabsContent value="versions">
+              <Card className="p-0">
+                <CardContent className="pt-5 pb-5">
+                  <TaskVersionsPanel
+                    taskId={id}
+                    versions={versions}
+                    authorNames={profileMap}
+                    editable={user.role === "admin"}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
             <TabsContent value="comments">
               <Card className="p-0">
                 <CardContent className="pt-5 pb-5">

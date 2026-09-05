@@ -21,6 +21,8 @@ import type {
   Tag,
   Task,
   TaskComment,
+  TaskVersion,
+  TaskVersionStatus,
   TemporaryAvailability,
   Topic,
   UserRole,
@@ -99,6 +101,12 @@ export interface Repository {
   deleteTask(id: string): Promise<void>;
   listTaskComments(taskId: string): Promise<TaskComment[]>;
   addTaskComment(input: Omit<TaskComment, "id" | "created_at">): Promise<TaskComment>;
+  listTaskVersions(taskId: string): Promise<TaskVersion[]>;
+  createTaskVersion(
+    input: Omit<TaskVersion, "id" | "created_at" | "version_number">
+  ): Promise<TaskVersion>;
+  updateTaskVersionStatus(id: string, status: TaskVersionStatus): Promise<TaskVersion>;
+  deleteTaskVersion(id: string): Promise<void>;
   listTags(organizationId: string): Promise<Tag[]>;
   getTaskTags(taskId: string): Promise<Tag[]>;
 

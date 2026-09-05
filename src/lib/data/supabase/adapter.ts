@@ -25,6 +25,8 @@ import type {
   Tag,
   Task,
   TaskComment,
+  TaskVersion,
+  TaskVersionStatus,
   TemporaryAvailability,
   Topic,
 } from "@/types/domain";
@@ -393,6 +395,55 @@ class SupabaseRepository implements Repository {
     const { data, error } = await supabase.from("task_comments").insert(input).select().single();
     if (error) err("addTaskComment", error);
     return data;
+  }
+
+  async listTaskVersions(taskId: string): Promise<TaskVersion[]> {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase
+      .from("task_versions")
+      .select("*")
+      .eq("task_id", taskId)
+      .order("version_number", { ascending: true });
+    if (error) err("listTaskVersions", error);
+    return data ?? [];
+  }
+
+  async createTaskVersion(
+    input: Omit<TaskVersion, "id" | "created_at" | "version_number">
+  ): Promise<TaskVersion> {
+    const supabase = await createServerSupabaseClient();
+    const { count, error: countErr } = await supabase
+      .from("task_versions")
+      .select("id", { count: "exact", head: true })
+      .eq("task_id", input.task_id);
+    if (countErr) err("createTaskVersion (count)", countErr);
+    const versionNumber = (count ?? 0) + 1;
+    const id = randomUUID();
+    const { error: insertErr } = await supabase
+      .from("task_versions")
+      .insert({ ...input, id, version_number: versionNumber });
+    if (insertErr) err("createTaskVersion", insertErr);
+    const { data, error } = await supabase.from("task_versions").select("*").eq("id", id).single();
+    if (error) err("createTaskVersion (fetch)", error);
+    return data;
+  }
+
+  async updateTaskVersionStatus(id: string, status: TaskVersionStatus): Promise<TaskVersion> {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase
+      .from("task_versions")
+      .update({ status })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) err("updateTaskVersionStatus", error);
+    return data;
+  }
+
+  async deleteTaskVersion(id: string): Promise<void> {
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase.from("task_versions").delete().eq("id", id);
+    if (error) err("deleteTaskVersion", error);
   }
 
   async listTags(organizationId: string): Promise<Tag[]> {

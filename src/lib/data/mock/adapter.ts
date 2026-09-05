@@ -26,6 +26,7 @@ function cascadeDeleteProject(store: Store, projectId: string) {
   const issueIds = new Set(store.issues.filter((i) => i.project_id === projectId).map((i) => i.id));
 
   store.taskComments = store.taskComments.filter((c) => !taskIds.has(c.task_id));
+  store.taskVersions = store.taskVersions.filter((v) => !taskIds.has(v.task_id));
   store.taskTags = store.taskTags.filter((t) => !taskIds.has(t.task_id));
   store.issueComments = store.issueComments.filter((c) => !issueIds.has(c.issue_id));
   store.tasks = store.tasks.filter((t) => t.project_id !== projectId);
@@ -301,6 +302,39 @@ class MockRepository implements Repository {
     const comment = { ...input, id: nextId("tc"), created_at: new Date().toISOString() };
     store.taskComments.push(comment);
     return comment;
+  }
+
+  async listTaskVersions(taskId: string) {
+    const store = ensureSeeded();
+    return store.taskVersions
+      .filter((v) => v.task_id === taskId)
+      .sort((a, b) => a.version_number - b.version_number);
+  }
+
+  async createTaskVersion(input: Parameters<Repository["createTaskVersion"]>[0]) {
+    const store = ensureSeeded();
+    const versionNumber = store.taskVersions.filter((v) => v.task_id === input.task_id).length + 1;
+    const version = {
+      ...input,
+      id: nextId("tv"),
+      version_number: versionNumber,
+      created_at: new Date().toISOString(),
+    };
+    store.taskVersions.push(version);
+    return version;
+  }
+
+  async updateTaskVersionStatus(id: string, status: Parameters<Repository["updateTaskVersionStatus"]>[1]) {
+    const store = ensureSeeded();
+    const idx = store.taskVersions.findIndex((v) => v.id === id);
+    if (idx === -1) throw new Error("Version not found");
+    store.taskVersions[idx] = { ...store.taskVersions[idx], status };
+    return store.taskVersions[idx];
+  }
+
+  async deleteTaskVersion(id: string) {
+    const store = ensureSeeded();
+    store.taskVersions = store.taskVersions.filter((v) => v.id !== id);
   }
 
   async listTags(organizationId: string) {

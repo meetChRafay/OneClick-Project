@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateTaskAction, updateTaskStatusAction } from "@/lib/actions/tasks";
+import { normalizeExternalUrl } from "@/lib/utils";
 import type { Priority, Task, TaskStatus, WaitingFor } from "@/types/domain";
 
 const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
@@ -135,12 +136,17 @@ export function TaskDetailEditor({
           disabled={!editable || pending}
           defaultValue={task.drive_url ?? ""}
           onBlur={(e) => {
-            const value = e.target.value.trim() || null;
+            const value = normalizeExternalUrl(e.target.value);
             if (value !== (task.drive_url ?? null)) update({ drive_url: value }, "Link saved");
           }}
         />
         {task.drive_url && (
-          <a href={task.drive_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline inline-block mt-0.5">
+          <a
+            href={normalizeExternalUrl(task.drive_url) ?? "#"}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-primary hover:underline inline-block mt-0.5"
+          >
             Open link ↗
           </a>
         )}
