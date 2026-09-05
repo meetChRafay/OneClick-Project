@@ -888,13 +888,22 @@ class SupabaseRepository implements Repository {
 
   async createNotification(input: Omit<Notification, "id" | "created_at" | "read">): Promise<Notification> {
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("notifications")
-      .insert({ ...input, read: false })
-      .select()
-      .single();
+    // Deliberately does NOT select the row back after inserting: notifications
+    // are private to their recipient (see notifications_select_own in
+    // 0002_rls_policies.sql), so whenever the person creating a notification
+    // is notifying someone ELSE (which is the normal case — a client
+    // notifying their admin, or vice versa), they are correctly not allowed
+    // to read that row back. Asking Supabase to return the inserted row
+    // (.select().single()) then finds zero visible rows and throws, even
+    // though the insert itself already succeeded — which was silently
+    // breaking the entire calling action (e.g. "couldn't post your comment"
+    // even though the comment itself had already saved). We don't need the
+    // row back here, so we just construct it ourselves instead.
+    const id = randomUUID();
+    const created_at = new Date().toISOString();
+    const { error } = await supabase.from("notifications").insert({ ...input, id, read: false, created_at });
     if (error) err("createNotification", error);
-    return data;
+    return { ...input, id, read: false, created_at };
   }
 
   // -- Activity --------------------------------------------------------------------
