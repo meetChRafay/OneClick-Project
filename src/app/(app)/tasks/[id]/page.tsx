@@ -94,7 +94,12 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
               ) : (
                 <p className="text-sm text-muted-foreground italic">No description provided.</p>
               )}
-              <TaskDetailEditor task={task} members={admins.map((a) => ({ id: a.id, name: a.full_name }))} editable={user.role === "admin"} />
+              {/* Both admin and client can edit these fields — the server already
+                  allows it (see tasks_update in 0002_rls_policies.sql, which has
+                  no admin-only check), so this is purely opening up the UI to
+                  match: the client should be able to update status/priority/
+                  waiting-for/deadline/drive-link on their own tasks too. */}
+              <TaskDetailEditor task={task} members={admins.map((a) => ({ id: a.id, name: a.full_name }))} editable={true} />
             </CardContent>
           </Card>
 

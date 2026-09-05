@@ -135,7 +135,10 @@ function VersionCard({
   };
 
   return (
-    <div className="rounded-lg border p-3 space-y-3">
+    <div
+      id={`version-${version.id}`}
+      className="rounded-lg border p-3 space-y-3 scroll-mt-24 target:ring-2 target:ring-primary target:border-primary"
+    >
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="gap-1 font-mono text-[11px]">

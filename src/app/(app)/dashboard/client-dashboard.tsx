@@ -73,12 +73,17 @@ export async function ClientDashboard({ user }: { user: CurrentUser }) {
       <div className="px-4 lg:px-6 space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           <SummaryCard label="My Tasks" value={myTasks.length} icon={CheckSquare} tone="info" href="/tasks" />
+          {/* Points at the "Awaiting Your Approval" section further down this
+              same page (not the older /approvals page), since that page only
+              knows about the legacy Approval entity and would show 0 here
+              whenever the pending item is actually a version — which is
+              confusing: the count says 1, the destination says nothing. */}
           <SummaryCard
             label="Awaiting My Approval"
             value={awaitingCount}
             icon={ClipboardCheck}
             tone="warning"
-            href="/approvals"
+            href="#awaiting-approval"
           />
           <SummaryCard label="Upcoming" value={upcoming.length} icon={CalendarClock} tone="neutral" href="/calendar" />
           <SummaryCard label="Project Progress" value={`${avgProgress}%`} icon={TrendingUp} tone="success" href="/projects" />
@@ -87,12 +92,9 @@ export async function ClientDashboard({ user }: { user: CurrentUser }) {
 
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="space-y-3">
+            <div id="awaiting-approval" className="space-y-3 scroll-mt-24">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-semibold">Awaiting Your Approval</h2>
-                <Link href="/approvals" className="text-sm text-primary hover:underline">
-                  View all
-                </Link>
               </div>
               {awaitingCount === 0 ? (
                 <EmptyState icon={ClipboardCheck} title="Nothing to review" description="You're all caught up." />
@@ -115,7 +117,10 @@ export async function ClientDashboard({ user }: { user: CurrentUser }) {
                     const task = taskMap.get(v.task_id);
                     return (
                       <Card key={v.id} className="p-0">
-                        <Link href={`/tasks/${v.task_id}`} className="flex items-center justify-between gap-3 p-4">
+                        {/* Jump straight to this exact version (not just the top of
+                            the task page) — with multiple versions logged, the one
+                            actually awaiting review can otherwise be scrolled past. */}
+                        <Link href={`/tasks/${v.task_id}#version-${v.id}`} className="flex items-center justify-between gap-3 p-4">
                           <div className="min-w-0">
                             <div className="font-medium text-sm truncate">{task?.title ?? "Untitled task"}</div>
                             <div className="text-xs text-muted-foreground mt-1">
