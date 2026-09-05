@@ -89,6 +89,18 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
             </CardContent>
           </Card>
 
+          <Card className="p-0">
+            <CardHeader className="pt-5 pb-0"><CardTitle className="text-sm">Versions</CardTitle></CardHeader>
+            <CardContent className="pt-4 pb-5">
+              <TaskVersionsPanel
+                taskId={id}
+                versions={versions}
+                authorNames={profileMap}
+                editable={user.role === "admin"}
+              />
+            </CardContent>
+          </Card>
+
           {attachments.length > 0 && (
             <Card className="p-0">
               <CardHeader className="pt-5 pb-0">
@@ -126,24 +138,11 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="versions">
+          <Tabs defaultValue="comments">
             <TabsList>
-              <TabsTrigger value="versions">Versions</TabsTrigger>
               <TabsTrigger value="comments">Comments</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
-            <TabsContent value="versions">
-              <Card className="p-0">
-                <CardContent className="pt-5 pb-5">
-                  <TaskVersionsPanel
-                    taskId={id}
-                    versions={versions}
-                    authorNames={profileMap}
-                    editable={user.role === "admin"}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
             <TabsContent value="comments">
               <Card className="p-0">
                 <CardContent className="pt-5 pb-5">
