@@ -4,11 +4,18 @@ import { revalidatePath } from "next/cache";
 import { getRepository } from "@/lib/data";
 import { requireAdmin } from "@/lib/auth";
 import { normalizeExternalUrl } from "@/lib/utils";
-import type { TaskVersionStatus } from "@/types/domain";
+import type { Priority, TaskVersion, TaskVersionStatus, WaitingFor } from "@/types/domain";
 
 export async function addTaskVersionAction(
   taskId: string,
-  input: { status: TaskVersionStatus; driveUrl?: string | null; notes?: string | null }
+  input: {
+    status: TaskVersionStatus;
+    priority: Priority;
+    waitingFor: WaitingFor;
+    deadline?: string | null;
+    driveUrl?: string | null;
+    notes?: string | null;
+  }
 ) {
   const user = await requireAdmin();
   const repo = getRepository();
@@ -19,6 +26,9 @@ export async function addTaskVersionAction(
     organization_id: user.organizationId,
     task_id: taskId,
     status: input.status,
+    priority: input.priority,
+    waiting_for: input.waitingFor,
+    deadline: input.deadline ?? null,
     drive_url: normalizeExternalUrl(input.driveUrl ?? ""),
     notes: input.notes?.trim() || null,
     created_by: user.id,
@@ -37,17 +47,22 @@ export async function addTaskVersionAction(
   return version;
 }
 
-export async function updateTaskVersionStatusAction(
+export async function updateTaskVersionAction(
   taskId: string,
   versionId: string,
-  status: TaskVersionStatus
+  patch: Partial<
+    Pick<TaskVersion, "status" | "priority" | "waiting_for" | "deadline" | "drive_url" | "notes">
+  >
 ) {
   const user = await requireAdmin();
   const repo = getRepository();
   const task = await repo.getTask(taskId);
   if (!task || task.organization_id !== user.organizationId) throw new Error("Task not found");
 
-  const version = await repo.updateTaskVersionStatus(versionId, status);
+  const cleaned = { ...patch };
+  if (typeof cleaned.drive_url === "string") cleaned.drive_url = normalizeExternalUrl(cleaned.drive_url);
+
+  const version = await repo.updateTaskVersion(versionId, cleaned);
   revalidatePath(`/tasks/${taskId}`);
   return version;
 }

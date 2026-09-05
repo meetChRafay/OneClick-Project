@@ -26,7 +26,7 @@ import type {
   Task,
   TaskComment,
   TaskVersion,
-  TaskVersionStatus,
+  TaskVersionComment,
   TemporaryAvailability,
   Topic,
 } from "@/types/domain";
@@ -428,15 +428,18 @@ class SupabaseRepository implements Repository {
     return data;
   }
 
-  async updateTaskVersionStatus(id: string, status: TaskVersionStatus): Promise<TaskVersion> {
+  async updateTaskVersion(
+    id: string,
+    patch: Partial<Omit<TaskVersion, "id" | "task_id" | "organization_id" | "version_number" | "created_by" | "created_at">>
+  ): Promise<TaskVersion> {
     const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase
       .from("task_versions")
-      .update({ status })
+      .update(patch)
       .eq("id", id)
       .select()
       .single();
-    if (error) err("updateTaskVersionStatus", error);
+    if (error) err("updateTaskVersion", error);
     return data;
   }
 
@@ -444,6 +447,34 @@ class SupabaseRepository implements Repository {
     const supabase = await createServerSupabaseClient();
     const { error } = await supabase.from("task_versions").delete().eq("id", id);
     if (error) err("deleteTaskVersion", error);
+  }
+
+  async listVersionComments(versionId: string): Promise<TaskVersionComment[]> {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase
+      .from("task_version_comments")
+      .select("*")
+      .eq("version_id", versionId)
+      .order("created_at", { ascending: true });
+    if (error) err("listVersionComments", error);
+    return data ?? [];
+  }
+
+  async addVersionComment(input: Omit<TaskVersionComment, "id" | "created_at">): Promise<TaskVersionComment> {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase.from("task_version_comments").insert(input).select().single();
+    if (error) err("addVersionComment", error);
+    return data;
+  }
+
+  async uploadImage(path: string, data: Buffer, contentType: string): Promise<string> {
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase.storage
+      .from("version-images")
+      .upload(path, data, { contentType, upsert: false });
+    if (error) err("uploadImage", error);
+    const { data: pub } = supabase.storage.from("version-images").getPublicUrl(path);
+    return pub.publicUrl;
   }
 
   async listTags(organizationId: string): Promise<Tag[]> {

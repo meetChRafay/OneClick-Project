@@ -180,9 +180,38 @@ export interface TaskVersion {
   task_id: ID;
   version_number: number; // 1, 2, 3… auto-incremented per task
   status: TaskVersionStatus;
+  priority: Priority;
+  waiting_for: WaitingFor;
+  deadline?: string | null;
   drive_url?: string | null;
   notes?: string | null; // e.g. "shortened intro, removed background music"
   created_by: ID;
+  created_at: string;
+}
+
+// What kind of change the client is asking for on a given version — shown as
+// a tag on their feedback so it's easy to scan a long revision thread.
+export type RevisionCategory =
+  | "video_length"
+  | "audio"
+  | "visuals_color"
+  | "captions_text"
+  | "thumbnail"
+  | "other";
+
+// Client (or admin) feedback on ONE specific version — "what needs to
+// change in this cut" — with an optional category tag and an optional
+// image (e.g. a screenshot with an arrow pointing at what to fix).
+export interface TaskVersionComment {
+  id: ID;
+  organization_id: ID;
+  version_id: ID;
+  task_id: ID;
+  author_id: ID;
+  body: string;
+  category?: RevisionCategory | null;
+  image_url?: string | null;
+  visibility: Visibility;
   created_at: string;
 }
 

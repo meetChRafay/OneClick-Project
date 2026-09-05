@@ -22,7 +22,7 @@ import type {
   Task,
   TaskComment,
   TaskVersion,
-  TaskVersionStatus,
+  TaskVersionComment,
   TemporaryAvailability,
   Topic,
   UserRole,
@@ -105,8 +105,15 @@ export interface Repository {
   createTaskVersion(
     input: Omit<TaskVersion, "id" | "created_at" | "version_number">
   ): Promise<TaskVersion>;
-  updateTaskVersionStatus(id: string, status: TaskVersionStatus): Promise<TaskVersion>;
+  updateTaskVersion(
+    id: string,
+    patch: Partial<Omit<TaskVersion, "id" | "task_id" | "organization_id" | "version_number" | "created_by" | "created_at">>
+  ): Promise<TaskVersion>;
   deleteTaskVersion(id: string): Promise<void>;
+  listVersionComments(versionId: string): Promise<TaskVersionComment[]>;
+  addVersionComment(input: Omit<TaskVersionComment, "id" | "created_at">): Promise<TaskVersionComment>;
+  /** Uploads a binary file (e.g. an image attached to version feedback) and returns a public URL. */
+  uploadImage(path: string, data: Buffer, contentType: string): Promise<string>;
   listTags(organizationId: string): Promise<Tag[]>;
   getTaskTags(taskId: string): Promise<Tag[]>;
 

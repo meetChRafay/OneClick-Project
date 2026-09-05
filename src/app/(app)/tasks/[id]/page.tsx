@@ -36,6 +36,9 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     repo.listFiles(user.organizationId, { projectId: task.project_id }),
   ]);
 
+  const versionCommentLists = await Promise.all(versions.map((v) => repo.listVersionComments(v.id)));
+  const commentsByVersion = new Map(versions.map((v, i) => [v.id, versionCommentLists[i]]));
+
   const admins = profiles.filter((p) => p.role === "admin");
   const profileMap = new Map(profiles.map((p) => [p.id, p.full_name]));
   const visibleComments = visibleToRole(comments, user.role);
@@ -95,8 +98,9 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
               <TaskVersionsPanel
                 taskId={id}
                 versions={versions}
+                commentsByVersion={commentsByVersion}
                 authorNames={profileMap}
-                editable={user.role === "admin"}
+                canManage={user.role === "admin"}
               />
             </CardContent>
           </Card>

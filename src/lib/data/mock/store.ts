@@ -21,6 +21,7 @@ import type {
   TaskComment,
   TaskTag,
   TaskVersion,
+  TaskVersionComment,
   TemporaryAvailability,
   Topic,
   TopicStageHistory,
@@ -36,6 +37,7 @@ export interface Store {
   tasks: Task[];
   taskComments: TaskComment[];
   taskVersions: TaskVersion[];
+  taskVersionComments: TaskVersionComment[];
   tags: Tag[];
   taskTags: TaskTag[];
   topics: Topic[];
@@ -67,6 +69,7 @@ function emptyStore(): Store {
     tasks: [],
     taskComments: [],
     taskVersions: [],
+    taskVersionComments: [],
     tags: [],
     taskTags: [],
     topics: [],

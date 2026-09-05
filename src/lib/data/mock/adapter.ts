@@ -27,6 +27,7 @@ function cascadeDeleteProject(store: Store, projectId: string) {
 
   store.taskComments = store.taskComments.filter((c) => !taskIds.has(c.task_id));
   store.taskVersions = store.taskVersions.filter((v) => !taskIds.has(v.task_id));
+  store.taskVersionComments = store.taskVersionComments.filter((c) => !taskIds.has(c.task_id));
   store.taskTags = store.taskTags.filter((t) => !taskIds.has(t.task_id));
   store.issueComments = store.issueComments.filter((c) => !issueIds.has(c.issue_id));
   store.tasks = store.tasks.filter((t) => t.project_id !== projectId);
@@ -324,17 +325,39 @@ class MockRepository implements Repository {
     return version;
   }
 
-  async updateTaskVersionStatus(id: string, status: Parameters<Repository["updateTaskVersionStatus"]>[1]) {
+  async updateTaskVersion(id: string, patch: Parameters<Repository["updateTaskVersion"]>[1]) {
     const store = ensureSeeded();
     const idx = store.taskVersions.findIndex((v) => v.id === id);
     if (idx === -1) throw new Error("Version not found");
-    store.taskVersions[idx] = { ...store.taskVersions[idx], status };
+    store.taskVersions[idx] = { ...store.taskVersions[idx], ...patch };
     return store.taskVersions[idx];
   }
 
   async deleteTaskVersion(id: string) {
     const store = ensureSeeded();
     store.taskVersions = store.taskVersions.filter((v) => v.id !== id);
+    store.taskVersionComments = store.taskVersionComments.filter((c) => c.version_id !== id);
+  }
+
+  async listVersionComments(versionId: string) {
+    const store = ensureSeeded();
+    return store.taskVersionComments
+      .filter((c) => c.version_id === versionId)
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  }
+
+  async addVersionComment(input: Parameters<Repository["addVersionComment"]>[0]) {
+    const store = ensureSeeded();
+    const comment = { ...input, id: nextId("tvc"), created_at: new Date().toISOString() };
+    store.taskVersionComments.push(comment);
+    return comment;
+  }
+
+  async uploadImage(_path: string, data: Buffer, contentType: string) {
+    // Demo/mock mode has no real storage — a data URI works fine for local
+    // preview purposes. In production (DATA_BACKEND=supabase) this uploads
+    // to real Supabase Storage instead — see the Supabase adapter.
+    return `data:${contentType};base64,${data.toString("base64")}`;
   }
 
   async listTags(organizationId: string) {
