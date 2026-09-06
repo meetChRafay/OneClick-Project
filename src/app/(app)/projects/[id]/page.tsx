@@ -70,7 +70,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     : project.progress;
   if (computedProgress !== project.progress) {
     project.progress = computedProgress;
-    await repo.updateProject(id, { progress: computedProgress });
+    // setProjectProgress, not updateProject — this page is viewed by
+    // clients too, and the regular project-update path is admin-only.
+    await repo.setProjectProgress(id, computedProgress);
   }
 
   const profileMap = new Map(profiles.map((p) => [p.id, p]));

@@ -17,6 +17,9 @@ export async function recalculateProjectProgress(repo: Repository, projectId: st
   const progress = counted.length ? Math.round((completed / counted.length) * 100) : 0;
 
   if (progress !== project.progress) {
-    await repo.updateProject(projectId, { progress });
+    // Uses setProjectProgress (not updateProject) specifically because this
+    // runs after task changes made by admins AND clients alike, and the
+    // regular project-update path is admin-only at the database level.
+    await repo.setProjectProgress(projectId, progress);
   }
 }

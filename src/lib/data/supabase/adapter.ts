@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { createServerSupabaseClient } from "./client";
+import { createServerSupabaseClient, createServiceSupabaseClient } from "./client";
 import type { Repository, CurrentUser } from "@/lib/data/repository";
 import type {
   Approval,
@@ -251,6 +251,23 @@ class SupabaseRepository implements Repository {
     const { data, error } = await supabase.from("projects").update(patch).eq("id", id).select().single();
     if (error) err("updateProject", error);
     return data;
+  }
+
+  async setProjectProgress(projectId: string, progress: number): Promise<void> {
+    // projects_update_admin (0002_rls_policies.sql) only lets an admin
+    // update a project row — correct for name/client/deadline edits, but
+    // progress is recalculated after ANY task change, including one a
+    // CLIENT just made (e.g. creating their own task). Under the client's
+    // own RLS-bound session that update affects zero rows, which used to
+    // surface as "Cannot coerce the result to a single JSON object" and
+    // abort the whole task action the client was performing — even though
+    // their task had already saved. Progress is a system-computed value,
+    // never a direct user edit, so this one narrow write goes through the
+    // service-role client (bypasses RLS) instead of the request's own
+    // session, regardless of who triggered the recalculation.
+    const supabase = createServiceSupabaseClient();
+    const { error } = await supabase.from("projects").update({ progress }).eq("id", projectId);
+    if (error) err("setProjectProgress", error);
   }
 
   async deleteProject(id: string): Promise<void> {

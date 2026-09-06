@@ -226,6 +226,16 @@ class MockRepository implements Repository {
     return store.projects[idx];
   }
 
+  async setProjectProgress(projectId: string, progress: number) {
+    // No RLS in the mock backend, so this is just the same patch as
+    // updateProject — the separate method exists for interface parity with
+    // the Supabase adapter, where it matters.
+    const store = ensureSeeded();
+    const idx = store.projects.findIndex((p) => p.id === projectId);
+    if (idx === -1) return;
+    store.projects[idx] = { ...store.projects[idx], progress };
+  }
+
   async deleteProject(id: string) {
     const store = ensureSeeded();
     cascadeDeleteProject(store, id);

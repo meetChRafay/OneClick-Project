@@ -78,6 +78,15 @@ export interface Repository {
   getProject(id: string): Promise<Project | null>;
   createProject(input: Omit<Project, "id" | "created_at" | "progress">): Promise<Project>;
   updateProject(id: string, patch: Partial<Project>): Promise<Project>;
+  /**
+   * Sets just the auto-calculated progress percentage. Separate from
+   * updateProject because progress is recalculated after ANY task change —
+   * including one made by a client (e.g. creating their own task) — while
+   * every other project field (name, client, deadline, etc.) stays
+   * admin-only. Implementations must not require admin/RLS write access
+   * for this one path.
+   */
+  setProjectProgress(projectId: string, progress: number): Promise<void>;
   deleteProject(id: string): Promise<void>;
   listProjectMembers(projectId: string): Promise<ProjectMember[]>;
   addProjectMember(input: Omit<ProjectMember, "id" | "created_at">): Promise<ProjectMember>;
