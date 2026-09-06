@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { getRepository } from "@/lib/data";
 import { requireUser } from "@/lib/auth";
@@ -12,7 +13,13 @@ export async function updateAvailabilityStatusAction(status: AvailabilityStatusV
   const record: Availability = existing
     ? { ...existing, status, status_message: message ?? null }
     : {
-        id: `avail_${user.id}`,
+        // A real UUID, not a prefixed string like the old `avail_${user.id}`
+        // — the `availability.id` column on Supabase is typed uuid, so that
+        // prefixed value was rejected outright ("invalid input syntax for
+        // type uuid") every time someone set their status for the first
+        // time. profile_id (below) is the actual upsert conflict target, so
+        // this id just needs to be a valid, unique value.
+        id: randomUUID(),
         profile_id: user.id,
         status,
         status_message: message ?? null,
@@ -36,7 +43,7 @@ export async function updateWeeklyScheduleAction(schedule: Availability["weekly_
   const repo = getRepository();
   const existing = await repo.getAvailability(user.id);
   const record: Availability = {
-    id: existing?.id ?? `avail_${user.id}`,
+    id: existing?.id ?? randomUUID(),
     profile_id: user.id,
     status: existing?.status ?? "available",
     status_message: existing?.status_message ?? null,
