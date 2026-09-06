@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getRepository } from "@/lib/data";
-import { requireUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import type { ContentPipelineStage, Priority, Topic, TopicStatus, VideoWorkflowStage } from "@/types/domain";
 
 const STAGE_TO_PIPELINE: Record<VideoWorkflowStage, ContentPipelineStage> = {
@@ -32,7 +32,10 @@ export async function createTopicAction(input: {
   assigneeId?: string | null;
   expectedStart?: string | null;
 }) {
-  const user = await requireUser();
+  // Topics are admin/agency-only at the database level (topics_write_admin
+  // in 0002_rls_policies.sql) — matching that here means a client hitting
+  // this directly gets sent to their dashboard instead of a raw RLS crash.
+  const user = await requireAdmin();
   const repo = getRepository();
   const topic = await repo.createTopic({
     organization_id: user.organizationId,
@@ -54,7 +57,9 @@ export async function createTopicAction(input: {
 }
 
 export async function advanceTopicStageAction(topicId: string, stage: VideoWorkflowStage) {
-  const user = await requireUser();
+  // Same admin-only reality as createTopicAction above — the UI already
+  // hides this behind canEdit, this is the matching server-side guard.
+  const user = await requireAdmin();
   const repo = getRepository();
   const topic = await repo.getTopic(topicId);
   if (!topic) throw new Error("Topic not found");
@@ -86,7 +91,7 @@ export async function advanceTopicStageAction(topicId: string, stage: VideoWorkf
 }
 
 export async function updateTopicAction(topicId: string, patch: Partial<Topic>) {
-  await requireUser();
+  await requireAdmin();
   const repo = getRepository();
   const updated = await repo.updateTopic(topicId, patch);
   revalidatePath("/topics");

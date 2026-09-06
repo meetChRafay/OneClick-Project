@@ -43,14 +43,15 @@ interface Option {
   name: string;
 }
 
-// "New Project" and "Add Client" are agency/admin actions — the server
-// actions behind them (createProjectAction, inviteClientAction) already
-// call requireAdmin() and refuse a client account, but the client was
-// still being shown these buttons in the first place, which is confusing
-// (looks like it should work, then silently fails). Filtering them out
-// of the list for client accounts fixes the UI to match what the server
-// actually allows.
-const ADMIN_ONLY_TYPES: QuickAddType[] = ["project", "client"];
+// "New Project", "New Topic" and "Add Client" are agency/admin actions —
+// topics in particular are only ever written by the admin side at the
+// database level (topics_write_admin in 0002_rls_policies.sql has no
+// client path at all), but a client could still open this dialog, fill it
+// in, and hit a raw "row violates row-level security policy" failure with
+// no useful explanation. Filtering these out of the list for client
+// accounts fixes the UI to match what the server actually allows, instead
+// of letting the client discover the restriction via a crash.
+const ADMIN_ONLY_TYPES: QuickAddType[] = ["project", "client", "topic"];
 
 export function QuickAddModal({
   role,
