@@ -87,8 +87,27 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
 
       <div className="grid lg:grid-cols-5 gap-6 mt-4">
         <div className="lg:col-span-3 space-y-5">
+          {/* Versions comes first, right under the title — this is where the
+              status badge and the client's Approve / Request Revision buttons
+              live, and it was easy to miss further down the page. Putting it
+              first means it's the very first thing anyone sees on this task,
+              no scrolling required. */}
           <Card className="p-0">
-            <CardContent className="pt-5 pb-5 space-y-5">
+            <CardHeader className="pt-5 pb-0"><CardTitle className="text-sm">Versions</CardTitle></CardHeader>
+            <CardContent className="pt-4 pb-5">
+              <TaskVersionsPanel
+                taskId={id}
+                versions={versions}
+                commentsByVersion={commentsByVersion}
+                authorNames={profileMap}
+                canManage={user.role === "admin"}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="p-0">
+            <CardHeader className="pt-5 pb-0"><CardTitle className="text-sm">Task details</CardTitle></CardHeader>
+            <CardContent className="pt-4 pb-5 space-y-5">
               {task.description ? (
                 <p className="text-sm whitespace-pre-wrap">{task.description}</p>
               ) : (
@@ -100,19 +119,6 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
                   match: the client should be able to update status/priority/
                   waiting-for/deadline/drive-link on their own tasks too. */}
               <TaskDetailEditor task={task} members={admins.map((a) => ({ id: a.id, name: a.full_name }))} editable={true} />
-            </CardContent>
-          </Card>
-
-          <Card className="p-0">
-            <CardHeader className="pt-5 pb-0"><CardTitle className="text-sm">Versions</CardTitle></CardHeader>
-            <CardContent className="pt-4 pb-5">
-              <TaskVersionsPanel
-                taskId={id}
-                versions={versions}
-                commentsByVersion={commentsByVersion}
-                authorNames={profileMap}
-                canManage={user.role === "admin"}
-              />
             </CardContent>
           </Card>
 
